@@ -1,0 +1,63 @@
+import type { LevelSpec } from '../../core/levels/schema';
+
+/** 2-1 Sand Entrance — sand slows Arin, quicksand swallows the careless. */
+export const L2_1: LevelSpec = {
+  id: '2-1',
+  name: 'Sand Entrance',
+  world: 'desert',
+  index: 1,
+  purpose: 'Teach sand movement: sand surfaces slow running, quicksand sinks you until you jump out. Introduce scarabs, mummies and spear-throwing sand warriors.',
+  mechanics: ['sand', 'quicksand'],
+  parTime: 150,
+  backdrop: { openSkyRows: 9, weather: 'sand', lightShafts: true },
+  introKey: 'intro.2-1',
+  map: [
+    '#                                                                                                            #',
+    '#                                                                                                            #',
+    '#                                                                                                            #',
+    '#                                                                                                            #',
+    '#                                                                                                            #',
+    '#                                                                                                            #',
+    '#                                                                                                            #',
+    '#                                                                                                            #',
+    '#                                                                                                            #',
+    '#                                                                                                            #',
+    '#                                ##################                                                          #',
+    '#                                 ##            ##                c                                          #',
+    '#                                 ##            ##                                                           #',
+    '#                                 ##            ##                g                     c                    #',
+    '#                                 ##        o   ##              =====             ###########                #',
+    '#                                 ##    c       ##                                ###########                #',
+    '#              c                           ==                                     ###########                #',
+    '#                                      ==                 ====                 == ?    ######       c        #',
+    '#             sss                                                                 ?    ######                #',
+    '#  P   o   sssssssss          e                      K        f        o o        ?  1 ######   e        X   #',
+    'ssssssssssssssssssssssqqqqqsssssssssssqqqqqqqqssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss',
+    '######################qqqqq###########qqqqqqqq################################################################',
+    '##############################################################################################################',
+  ],
+  marks: {
+    '1': { type: 'chest', id: 'chest_sphinx', props: { variant: 'secret', contents: ['relic_2_1'] } },
+  },
+  entities: [
+    { type: 'relic', id: 'relic_2_1', x: 85, y: 19, props: { hidden: true } },
+    { type: 'clue', id: 'sphinx_eye', x: 83, y: 15, props: { kind: 'sparkle' } },
+    { type: 'clue', id: 'sphinx_crack', x: 82, y: 17, props: { kind: 'crack' } },
+  ],
+  secrets: [
+    {
+      id: 'sphinx_heart',
+      type: 'false_wall',
+      why: 'Tomb builders hid a votive tablet inside the guardian sphinx’s chest.',
+      clue: 'Only one of the sphinx’s eyes still glitters, directly above a cracked patch in its chest.',
+      discoveryMethod: 'Inspect or strike the cracked stone below the glittering eye.',
+      requiredMechanic: 'interact',
+      reward: 'relic_2_1',
+      room: [83, 17, 4, 3],
+      difficulty: 1,
+    },
+  ],
+  hints: [
+    { rect: [8, 15, 6, 5], textKey: 'hint.sand' },
+  ],
+};

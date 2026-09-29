@@ -357,19 +357,23 @@ export class ShiftingSand extends MovingSolid {
     this.bottom = def.y + def.h;
     this.low = this.num('low', 1) * TILE;
     this.high = this.num('high', def.h / TILE) * TILE;
-    this.h = this.low;
+    this.h = this.bool('drainOnPower', false) ? this.high : this.low;
     this.y = this.bottom - this.h;
   }
   override update(world: WorldApi, dt: number): void {
     const period = this.num('period', 6);
-    let t: number;
-    if (this.requires.length) t = this.powered ? 1 : 0;
-    else {
-      const ph = ((world.time + this.num('offset', 0)) % period) / period;
-      t = 0.5 - 0.5 * Math.cos(ph * Math.PI * 2);
+    let target: number;
+    if (this.requires.length) {
+      const t = this.bool('drainOnPower', false) ? (this.powered ? 0 : 1) : this.powered ? 1 : 0;
+      target = this.low + (this.high - this.low) * t;
+    } else {
+      // Rise → hold high → fall → hold low, each a quarter of the period (smoothstep ramps).
+      const ph = ((((world.time + this.num('offset', 0)) % period) + period) % period) / period;
+      const ramp = (u: number): number => u * u * (3 - 2 * u);
+      const k = ph < 0.25 ? ramp(ph / 0.25) : ph < 0.5 ? 1 : ph < 0.75 ? 1 - ramp((ph - 0.5) / 0.25) : 0;
+      target = this.low + (this.high - this.low) * k;
     }
-    const targetH = this.low + (this.high - this.low) * t;
-    const nh = approach(this.h, targetH, 70 * dt);
+    const nh = this.requires.length ? approach(this.h, target, 90 * dt) : target;
     const oldY = this.y;
     this.h = nh;
     this.y = this.bottom - nh;

@@ -81,3 +81,35 @@ describe('1-8 Giant Serpent', () => {
     expect(w.getEntity('gate_in')?.solidKind()).toBeNull();
   });
 });
+
+describe('2-8 Sand King', () => {
+  it('is defeated by routing sunlight into the disk after every mirror sabotage', () => {
+    const w = levelWorld('2-8');
+    w.invulnerable = true;
+    const boss = w.boss as Boss;
+    teleport(w, 20, 19);
+    run(w, 3, {});
+    expect(boss.state).toBe('fight');
+    const m = (id: string): { orient: number; rotate: (x: unknown) => void } => w.getEntity(id) as unknown as { orient: number; rotate: (x: unknown) => void };
+    // Correct orientations: m1 '\\' (1), m2 '/' (0), m3 '/' (0).
+    const want: Record<string, number> = { m1: 1, m2: 0, m3: 0 };
+    for (let cycle = 0; cycle < 10 && boss.state === 'fight'; cycle++) {
+      run(w, 0.3, {});
+      for (const id of ['m1', 'm2', 'm3']) if (m(id).orient !== want[id]) m(id).rotate(w);
+      for (let i = 0; i < 60 && boss.stun <= 0; i++) run(w, 1 / 60, {});
+      expect(boss.stun).toBeGreaterThan(0);
+      // Strike the gem from the dais.
+      w.player.x = 49 * 32 - w.player.w - 1;
+      w.player.y = 18 * 32 - w.player.h;
+      w.player.facing = 1;
+      run(w, 0.8, {});
+      run(w, 1 / 120, { attackPressed: true });
+      run(w, 0.5, {});
+      for (let i = 0; i < 600 && boss.stun > 0 && boss.state === 'fight'; i++) run(w, 1 / 60, {});
+      run(w, 0.3, {});
+    }
+    run(w, 4, {});
+    expect(boss.state).toBe('dead');
+    expect(w.getEntity('chest_seal')?.powered).toBe(true);
+  });
+});

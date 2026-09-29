@@ -220,6 +220,16 @@ export const EN: Record<string, string> = {
 
   'intro.1-1': 'Jungle Ruins — the first temple waits.',
   'intro.1-8': 'The guardian of the Jungle Ruins stirs in the deep pool.',
+  'intro.2-1': 'Desert Temple — the sun still keeps its ancient hours.',
+  'intro.2-8': 'The Sand King waits on his throne of light.',
+  'intro.3-1': 'Crystal Caverns — the stones remember every song.',
+  'intro.3-8': 'Something vast and crystalline shifts in the dark.',
+  'intro.4-1': 'Volcano Depths — the mountain’s heart beats in fire.',
+  'intro.4-8': 'Wings of flame stir above the magma lake.',
+  'intro.5-1': 'Ice Mountains — the wind carries old voices.',
+  'intro.5-8': 'A frozen roar echoes between the twin peaks.',
+  'intro.6-1': 'Sky Temple — the last seal waits above the clouds.',
+  'intro.6-8': 'The Sky Deity descends. Every lesson is needed now.',
 
   'credits.body': 'Relics of the Six Temples — Season 2\n\nDesign, code, art and audio generated procedurally for this build.\nBuilt with Phaser 3, TypeScript and Vite.\n\nThank you for playing.',
 

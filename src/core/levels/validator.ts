@@ -436,6 +436,13 @@ export function validateLevel(spec: LevelSpec): ValidationIssue[] {
       if ('signal' in u && !ids.has(u.signal)) err(`boss phase ${ph.id} waits for unknown signal '${u.signal}'`);
       if ('allSignals' in u) for (const sgl of u.allSignals) if (!ids.has(sgl)) err(`boss phase ${ph.id} waits for unknown signal '${sgl}'`);
       if (ph.stunOn && !ids.has(ph.stunOn)) err(`boss phase ${ph.id} stunOn unknown '${ph.stunOn}'`);
+      // A stun source that stays active (receivers, switches, plates) must be broken again after each
+      // stun, otherwise the boss can only be stunned once in that phase (soft-lock).
+      if (ph.stunOn && 'hits' in u && u.hits > 1) {
+        const src = defs.find((d) => d.id === ph.stunOn);
+        const latching = src && ['light_receiver', 'switch', 'lever', 'pressure_plate', 'torch'].includes(src.type) && !(src.type === 'switch' && src.props['timer']);
+        if (latching && !(ph.afterStun && ph.afterStun.length)) err(`boss phase ${ph.id}: stun source '${ph.stunOn}' stays active after a stun and no afterStun action re-arms it — the boss can only be stunned once`);
+      }
       for (const h of ph.hint ?? []) if (!ids.has(h)) err(`boss phase ${ph.id} hint unknown '${h}'`);
       void i;
     });

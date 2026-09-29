@@ -296,3 +296,134 @@ describe('1-7 Collapsing Floor', () => {
     expect(w.player.y + w.player.h).toBeLessThanOrEqual(18 * 32 + 1);
   });
 });
+
+describe('2-2 Shifting Sands', () => {
+  it('column A lifts Arin to the first ledge', () => {
+    const w = levelWorld('2-2');
+    teleport(w, 15, 19);
+    for (let i = 0; i < 900 && w.player.y + w.player.h > 14 * 32 + 1; i++) run(w, 1 / 120, {});
+    run(w, 1, { right: true });
+    expect(w.player.x).toBeGreaterThan(18 * 32);
+    expect(w.player.y + w.player.h).toBeLessThanOrEqual(14 * 32 + 1);
+  });
+  it('the low-tide hollow can be entered when the last column is low', () => {
+    const w = levelWorld('2-2');
+    const e = w.getEntity('col_e')!;
+    for (let i = 0; i < 2000 && e.y < 18.9 * 32; i++) run(w, 1 / 120, {});
+    w.player.x = 56 * 32;
+    w.player.y = e.y - w.player.h - 1;
+    run(w, 1.2, { left: true });
+    expect(w.stats.secretsFound).toContain('low_tide_cache');
+  });
+});
+
+describe('2-3 Sunken Tomb', () => {
+  it('two face stones fill the vents and drain the sand plug', () => {
+    const w = levelWorld('2-3');
+    teleport(w, 18, 9);
+    run(w, 0.6, { right: true });
+    run(w, 3, {});
+    expect(w.getEntity('vent_a')?.active).toBe(true);
+    teleport(w, 71, 9);
+    run(w, 0.6, { left: true });
+    run(w, 4, {});
+    expect(w.getEntity('vent_b')?.active).toBe(true);
+    run(w, 3, {});
+    const plug = w.getEntity('sand_plug')!;
+    expect(plug.h).toBeLessThan(16);
+    teleport(w, 61, 11);
+    run(w, 1.5, {});
+    expect(w.player.y + w.player.h).toBeGreaterThan(18.5 * 32);
+  });
+});
+
+describe('2-4 Sand Falls', () => {
+  it('climbing between pours works; a pour knocks climbers off', () => {
+    const w = levelWorld('2-4');
+    const fall = w.getEntity('fall_1')!;
+    teleport(w, 12, 27);
+    // Wait for the pour to stop, then climb.
+    for (let i = 0; i < 1200 && (fall.active || (fall as unknown as { flow: number }).flow > 0.1); i++) run(w, 1 / 120, {});
+    run(w, 1.6, { up: true });
+    run(w, 0.4, { right: true, up: true });
+    run(w, 0.4, { right: true });
+    expect(w.player.y + w.player.h).toBeLessThanOrEqual(22 * 32 + 1);
+    // Climbing into an active pour knocks Arin down.
+    const w2 = levelWorld('2-4');
+    const f2 = w2.getEntity('fall_1')!;
+    teleport(w2, 12, 27);
+    for (let i = 0; i < 1200 && !f2.active; i++) run(w2, 1 / 120, {});
+    run(w2, 0.3, {});
+    run(w2, 1.2, { up: true });
+    expect(w2.player.y + w2.player.h).toBeGreaterThan(26 * 32);
+  });
+});
+
+describe('2-5 Mirror Hall', () => {
+  const rotate = (w: ReturnType<typeof levelWorld>, tx: number, ty: number): void => {
+    (entityAt(w, 'mirror', tx, ty) as unknown as { rotate: (x: unknown) => void }).rotate(w);
+  };
+  it('room 3: five correct rotations route the sun into the disk', () => {
+    const w = levelWorld('2-5');
+    for (const [x, y] of [[58, 13], [66, 18], [66, 11], [74, 11], [74, 16]] as const) rotate(w, x, y);
+    run(w, 0.3, {});
+    expect(w.getEntity('rx_3')?.active).toBe(true);
+    expect(w.getEntity('rx_hidden')?.active).toBe(false);
+  });
+  it('misrouting the lower mirror lights the forgotten disk and forms the bridge', () => {
+    const w = levelWorld('2-5');
+    rotate(w, 58, 13);
+    rotate(w, 58, 18);
+    run(w, 0.5, {});
+    expect(w.getEntity('rx_hidden')?.active).toBe(true);
+    run(w, 1, {});
+    expect(w.getEntity('sun_bridge')?.solidKind()).toBe('top');
+  });
+  it('mirror A can be reached and rotated from the stepping platforms', () => {
+    const w = levelWorld('2-5');
+    teleport(w, 58, 14);
+    expect(w.prompt?.textKey).toBe('prompt.rotateMirror');
+  });
+});
+
+describe('2-6 Moving Walls', () => {
+  it('the lever raises the first wall; the timed switch holds the end wall open', () => {
+    const w = levelWorld('2-6');
+    teleport(w, 7, 19);
+    run(w, 0.05, { interact: true, interactPressed: true });
+    run(w, 2, {});
+    expect(w.getEntity('wall_1')!.y).toBeLessThan(12 * 32);
+    teleport(w, 22, 19);
+    run(w, 0.05, { interact: true, interactPressed: true });
+    run(w, 1.5, {});
+    expect(w.getEntity('wall_end')!.y).toBeLessThan(11 * 32);
+    run(w, 8, {});
+    expect(w.getEntity('wall_end')!.y).toBe(15 * 32);
+  });
+});
+
+describe('2-7 Ankh Puzzle', () => {
+  const press = (w: ReturnType<typeof levelWorld>, id: string): void => {
+    w.getEntity(id)!.interact(w);
+    run(w, 0.1, {});
+  };
+  it('the carved order (eye, bird, ankh, sun) opens the gate; a wrong press resets', () => {
+    const w = levelWorld('2-7');
+    press(w, 'g_ankh');
+    expect(w.getEntity('g_ankh')?.active).toBe(false);
+    for (const id of ['g_eye', 'g_bird', 'g_ankh', 'g_sun']) press(w, id);
+    expect(w.getEntity('seq_glyphs')?.active).toBe(true);
+    run(w, 2, {});
+    expect(w.getEntity('gate_ankh')?.solidKind()).toBeNull();
+  });
+  it('the hasty door can be reached before the timer runs out', () => {
+    const w = levelWorld('2-7');
+    teleport(w, 27, 19);
+    run(w, 0.05, { interact: true, interactPressed: true });
+    // Run across the stepping stones and up to the ledge.
+    run(w, 0.25, { right: true });
+    for (let i = 0; i < 4; i++) jump(w, 1, 0.4, 0.2);
+    run(w, 0.6, { right: true });
+    expect(w.getEntity('sd_hurry')?.solidKind()).toBeNull();
+  });
+});
