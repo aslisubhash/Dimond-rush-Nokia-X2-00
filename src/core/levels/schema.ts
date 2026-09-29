@@ -153,6 +153,8 @@ export interface TriggerSpec {
   source?: string;
   actions: LevelAction[];
   once?: boolean;
+  /** Re-arm this trigger when the player respawns (chase sequences). */
+  rearm?: boolean;
 }
 
 export type SecretType = 'false_wall' | 'water' | 'environmental' | 'timing' | 'chain';

@@ -298,6 +298,15 @@ export class CrumblingBlock extends Entity implements StepReactive {
       if (this.timer <= 0 && !overlaps(this, world.player)) this.state = 'solid';
     }
   }
+  /** START collapses the block, optionally as part of a wave travelling along the floor. */
+  override handleAction(world: WorldApi, action: LevelAction): void {
+    if (action.type !== 'START' || this.state !== 'solid') return;
+    const from = this.num('waveFrom', -1);
+    this.state = 'cracking';
+    this.timer = this.num('delay', 0.4) + (from >= 0 ? Math.max(0, this.x / TILE - from) * this.num('waveStep', 0.12) : 0);
+    world.emit({ kind: 'sound', id: 'crumble_warn', x: this.cx, y: this.cy, volume: 0.4 });
+  }
+
   override onPlayerRespawn(): void {
     this.state = 'solid';
   }

@@ -95,6 +95,10 @@ export class Gate extends Entity {
     }
   }
 
+  override onPlayerRespawn(): void {
+    if (this.bool('resetOnDeath', false)) this.restoreInitial();
+  }
+
   override update(world: WorldApi, dt: number): void {
     const before = this.open;
     this.open = approach(this.open, this.targetOpen, this.speed * dt);

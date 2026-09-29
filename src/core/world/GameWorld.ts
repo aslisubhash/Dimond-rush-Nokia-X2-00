@@ -539,6 +539,7 @@ export class GameWorld implements WorldApi {
       this.boss.resetFight(this);
     }
     for (const e of this.entities) e.onPlayerRespawn(this);
+    for (const t of this.triggers) if (t.rearm) t.fired = false;
     this.emit({ kind: 'sound', id: 'respawn' });
     this.emit({ kind: 'particles', preset: 'magic', x: this.player.x + this.player.w / 2, y: this.player.y + this.player.h / 2, count: 20, color: 0x7cf2c9 });
   }

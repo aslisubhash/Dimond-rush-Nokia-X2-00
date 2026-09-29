@@ -286,6 +286,7 @@ export class MagnetStone extends PhysicsBlock {
 /** Boulder hazard that rolls when released, crushing enemies and hurting the player. */
 export class RollingStone extends PhysicsBlock {
   released = false;
+  started = false;
   dir: number;
   constructor(def: EntityDef) {
     super(def);
@@ -307,9 +308,16 @@ export class RollingStone extends PhysicsBlock {
   }
   override update(world: WorldApi, dt: number): void {
     if (this.removed) return;
-    if (this.released && this.vx === 0 && this.grounded && this.x === this.homeX && this.y === this.homeY) {
+    // `dropFirst` boulders wait until they have fallen out of their alcove.
+    if (this.released && !this.started && this.grounded && (!this.bool('dropFirst', false) || this.y > this.homeY + 8)) {
+      this.started = true;
       this.vx = this.dir * this.rollSpeed;
       world.emit({ kind: 'sound', id: 'boulder', x: this.cx, y: this.cy });
+      world.emit({ kind: 'shake', intensity: 0.004, duration: 0.4 });
+    }
+    if (this.y > world.level.heightPx) {
+      this.removed = true;
+      return;
     }
     const wasRolling = this.vx !== 0;
     super.update(world, dt);
@@ -332,6 +340,7 @@ export class RollingStone extends PhysicsBlock {
   override onPlayerRespawn(): void {
     if (this.bool('resetOnDeath', true)) {
       this.removed = false;
+      this.started = false;
       this.released = this.bool('released', false);
       this.returnHome();
     }

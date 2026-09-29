@@ -26,7 +26,7 @@ export class Menu {
     private items: MenuItem[],
     private input: InputManager,
     private audio: AudioEngine,
-    opts: { size?: number; spacing?: number; align?: 'center' | 'left' } = {},
+    opts: { size?: number; spacing?: number; align?: 'center' | 'left'; cursor?: boolean } = {},
   ) {
     const size = opts.size ?? 30;
     const spacing = opts.spacing ?? size * 1.55;
@@ -56,6 +56,7 @@ export class Menu {
     });
     this.cursor = scene.add.text(0, 0, '◆', style(size * 0.6, COLORS.gold)).setOrigin(0.5);
     this.container.add(this.cursor);
+    this.cursor.setVisible(opts.cursor !== false);
     this.refresh();
   }
 

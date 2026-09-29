@@ -64,7 +64,7 @@ export class ResultsScene extends Phaser.Scene {
     this.menu = new Menu(this, VIEW_W / 2, 620, [
       { label: () => t('results.continue'), onSelect: () => this.continue(isBoss, world, next) },
       { label: () => t('results.replay'), onSelect: () => this.scene.start('Game', { levelId: this.levelId }) },
-    ], s.input, s.audio, { size: 24, spacing: 0 });
+    ], s.input, s.audio, { size: 26, spacing: 0, cursor: false });
     // Two items side by side.
     const texts = this.menu.container.list.filter((o) => o instanceof Phaser.GameObjects.Text) as Phaser.GameObjects.Text[];
     texts[0]?.setX(-120);

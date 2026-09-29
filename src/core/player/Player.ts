@@ -606,12 +606,18 @@ export class Player implements PlayerView {
     return !this.world.collision.overlapsSolid(r);
   }
 
-  private overlapClimbable(): boolean {
+  /** Climbable cell; a one-way platform capping a ladder/vine counts as its top rung. */
+  private climbableAt(tx: number, ty: number): boolean {
     const map = this.world.map;
+    const p = map.props(tx, ty);
+    return p.climbable || (p.oneWay && map.props(tx, ty + 1).climbable);
+  }
+
+  private overlapClimbable(): boolean {
     const cx = Math.floor((this.x + this.w / 2) / TILE);
     const t0 = Math.floor((this.y + 6) / TILE);
     const t1 = Math.floor((this.y + this.h - 4) / TILE);
-    for (let ty = t0; ty <= t1; ty++) if (map.props(cx, ty).climbable) return true;
+    for (let ty = t0; ty <= t1; ty++) if (this.climbableAt(cx, ty)) return true;
     return false;
   }
 
@@ -626,7 +632,7 @@ export class Player implements PlayerView {
     if (!this.grounded) return false;
     const cx = Math.floor((this.x + this.w / 2) / TILE);
     const fy = Math.floor((this.y + this.h + 2) / TILE);
-    return this.world.map.props(cx, fy).climbable;
+    return this.climbableAt(cx, fy);
   }
 
   private snapToClimbable(below = false): void {

@@ -152,3 +152,147 @@ describe('1-5 Water Gate', () => {
     expect(w.player.x).toBeGreaterThan(74 * 32);
   });
 });
+
+describe('1-3 Hidden Chamber', () => {
+  const light = (w: ReturnType<typeof levelWorld>, id: string, tx: number): void => {
+    teleport(w, tx - 1, 19);
+    run(w, 0.05, { interact: true, interactPressed: true });
+    run(w, 0.1, {});
+    void id;
+  };
+  it('wrong order resets, mural order (tall → short) opens the gate', () => {
+    const w = levelWorld('1-3');
+    light(w, 't_sun', 41);
+    expect(w.getEntity('t_sun')?.active).toBe(false);
+    light(w, 't_eye', 57);
+    light(w, 't_sun', 41);
+    light(w, 't_ankh', 49);
+    expect(w.getEntity('seq_torch')?.active).toBe(true);
+    run(w, 2, {});
+    expect((w.getEntity('gate_main') as Gate).open).toBeGreaterThan(0.9);
+  });
+  it('the lone torch opens the vault only after the sequence', () => {
+    const w = levelWorld('1-3');
+    light(w, 't_lone', 71);
+    run(w, 1.5, {});
+    expect((w.getEntity('sd_vault') as Gate).open).toBe(0);
+    for (const [id, x] of [['t_eye', 57], ['t_sun', 41], ['t_ankh', 49]] as const) light(w, id, x);
+    run(w, 2, {});
+    expect((w.getEntity('sd_vault') as Gate).open).toBeGreaterThan(0.9);
+  });
+});
+
+describe('1-4 Rotating Stones', () => {
+  it('stone rolls down the stairs into the plate slot', () => {
+    const w = levelWorld('1-4');
+    teleport(w, 9, 13);
+    run(w, 0.6, { right: true });
+    run(w, 3, {});
+    expect(w.getEntity('p1')?.active).toBe(true);
+    run(w, 1, {});
+    expect((w.getEntity('g1') as Gate).open).toBeGreaterThan(0.9);
+  });
+  it('two stones from opposite sides fill both slots', () => {
+    const w = levelWorld('1-4');
+    teleport(w, 33, 19);
+    run(w, 0.6, { right: true });
+    run(w, 2, {});
+    expect(w.getEntity('pA')?.active).toBe(true);
+    teleport(w, 60, 15);
+    run(w, 0.8, { left: true });
+    run(w, 3, {});
+    expect(w.getEntity('pB')?.active).toBe(true);
+    run(w, 1, {});
+    expect((w.getEntity('g2') as Gate).open).toBeGreaterThan(0.9);
+  });
+  it('one stone bridges the trap slot, the other becomes a step at the wall', () => {
+    const w = levelWorld('1-4');
+    const s3 = entityAt(w, 'face_stone', 72, 19);
+    const s4 = entityAt(w, 'face_stone', 80, 15);
+    teleport(w, 70, 19);
+    run(w, 0.6, { right: true });
+    run(w, 2.5, {});
+    expect(s3.x).toBe(88 * 32);
+    teleport(w, 78, 15);
+    run(w, 0.6, { right: true });
+    run(w, 3, {});
+    expect(s4.x).toBe(99 * 32);
+    expect(s4.y).toBe(19 * 32);
+  });
+});
+
+describe('1-6 Vine Lift', () => {
+  it('climbs the first vine into the gallery and the ladder into the lift hall', () => {
+    const w = levelWorld('1-6');
+    teleport(w, 10, 37);
+    run(w, 3.2, { up: true });
+    run(w, 0.4, { up: true, left: true });
+    run(w, 0.6, { left: true });
+    expect(w.player.y + w.player.h).toBeLessThanOrEqual(30 * 32 + 1);
+    teleport(w, 28, 29);
+    run(w, 5, { up: true });
+    run(w, 0.5, { right: true });
+    expect(w.player.y + w.player.h).toBeLessThanOrEqual(22 * 32 + 1);
+  });
+
+  it('the lever raises the vine lift to the landing', () => {
+    const w = levelWorld('1-6');
+    teleport(w, 32, 21);
+    run(w, 0.05, { interact: true, interactPressed: true });
+    run(w, 5, {});
+    const lift = w.getEntity('lift')!;
+    expect(lift.y).toBe(12 * 32);
+  });
+
+  it('vine traverse from the landing reaches the exit room', () => {
+    const w = levelWorld('1-6');
+    teleport(w, 32, 21);
+    run(w, 0.05, { interact: true, interactPressed: true });
+    run(w, 5, {});
+    teleport(w, 37, 11);
+    // Leap to the first vine, then hop vine to vine holding up to grab.
+    run(w, 1 / 120, { left: true, up: true, jump: true, jumpPressed: true });
+    run(w, 0.7, { left: true, up: true, jump: true });
+    expect(w.player.state).toBe('CLIMB');
+    for (let i = 0; i < 7 && w.player.x > 15 * 32; i++) {
+      run(w, 0.5, { up: true });
+      run(w, 1 / 120, { left: true, jump: true, jumpPressed: true });
+      // Hold up to grab the next vine, and let go of left once holding on.
+      for (let k = 0; k < 60 && !(w.player.state === 'CLIMB' && k > 4); k++) run(w, 1 / 60, { left: true, up: true, jump: true });
+    }
+    run(w, 1.2, { left: true });
+    expect(w.player.x).toBeLessThan(13 * 32);
+    expect(w.player.y + w.player.h).toBeLessThanOrEqual(7 * 32 + 1);
+  });
+});
+
+describe('1-7 Collapsing Floor', () => {
+  it('the trigger releases the boulder, which chases Arin and falls through the collapsing floor', () => {
+    const w = levelWorld('1-7');
+    const boulder = w.getEntity('boulder')!;
+    teleport(w, 60, 19);
+    run(w, 1.1, { right: true });
+    expect(w.getEntity('chase_zone')?.active).toBe(true);
+    // Run and hop the low obstacles.
+    for (let i = 0; i < 12; i++) {
+      run(w, 1 / 120, { right: true, jump: true, jumpPressed: true });
+      run(w, 0.3, { right: true, jump: true });
+    }
+    run(w, 0.3, { right: true });
+    expect(w.player.x).toBeGreaterThan(97 * 32);
+    expect(w.player.health).toBe(w.player.maxHealth);
+    run(w, 2, {});
+    expect(boulder.removed).toBe(true);
+  });
+
+  it('stopping on the cracked slab drops Arin into the hidden room; the vine leads back up', () => {
+    const w = levelWorld('1-7');
+    teleport(w, 109, 17);
+    run(w, 1.5, {});
+    expect(w.stats.secretsFound).toContain('hollow_slab');
+    teleport(w, 112, 21);
+    run(w, 2.5, { up: true });
+    run(w, 0.3, {});
+    expect(w.player.y + w.player.h).toBeLessThanOrEqual(18 * 32 + 1);
+  });
+});
