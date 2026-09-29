@@ -10,6 +10,7 @@ export class PressurePlate extends Entity {
   weightRequired: number;
   latch: boolean;
   load = 0;
+  private warned = false;
   constructor(def: EntityDef) {
     super(def);
     this.weightRequired = this.num('weightRequired', 1);
@@ -30,6 +31,11 @@ export class PressurePlate extends Entity {
     }
     this.load = load;
     const pressed = load >= this.weightRequired;
+    if (!pressed && load > 0 && !this.warned && this.weightRequired > 1) {
+      this.warned = true;
+      world.emit({ kind: 'toast', textKey: 'toast.plateHeavy' });
+      world.emit({ kind: 'sound', id: 'plate_up', x: this.cx, y: this.cy, volume: 0.5 });
+    }
     if (pressed && !this.active) {
       this.active = true;
       this.touched = true;

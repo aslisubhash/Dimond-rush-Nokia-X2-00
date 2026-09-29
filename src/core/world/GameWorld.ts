@@ -114,7 +114,7 @@ export class GameWorld implements WorldApi {
     this.ordered = [...this.entities].sort((a, b) => updatePhase(a) - updatePhase(b));
     for (const e of this.ordered) (updatePhase(e) <= 1 ? this.prePlayer : this.postPlayer).push(e);
     for (const e of this.entities) {
-      if (e.requires.length) this.logicTargets.push(e);
+      if (e.requires.length || Array.isArray(e.props['unless'])) this.logicTargets.push(e);
       if (e instanceof FluidBody) this.fluids.push(e);
       if (e instanceof WindSource) this.winds.push(e);
       if (e instanceof WaterCurrent) this.currents.push(e);
@@ -208,6 +208,9 @@ export class GameWorld implements WorldApi {
       let powered: boolean;
       if (e.logic === 'or') powered = e.requires.some((id) => !!this.byId.get(id)?.active);
       else powered = e.requires.every((id) => !!this.byId.get(id)?.active);
+      // `unless`: NOT inputs — any active one cuts the power.
+      const unless = e.props['unless'];
+      if (powered && Array.isArray(unless)) powered = !(unless as string[]).some((id) => !!this.byId.get(id)?.active);
       if (powered !== e.powered) {
         e.powered = powered;
         if (!initial || powered) e.onPowerChanged(this, powered);

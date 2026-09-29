@@ -98,7 +98,7 @@ class SerpentBrain implements BossBrain {
     const c = this.t % period;
     const hoverY = b.by - 170;
     const minX = b.bx - b.param('reach', 7) * TILE;
-    const maxX = b.bx + 2 * TILE;
+    const maxX = b.bx + b.param('reachR', 2) * TILE;
     if (c < 0.8) {
       P['emerge'] = c / 0.8;
       P['headX'] = approach(P['headX'] ?? b.bx, b.bx, 300 * dt);

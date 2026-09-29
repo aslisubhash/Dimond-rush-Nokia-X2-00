@@ -114,8 +114,9 @@ export class Waterfall extends Entity {
   override update(world: WorldApi, dt: number): void {
     this.flow = approach(this.flow, this.active ? 1 : 0, dt * 2);
     this.anim += dt;
-    if (this.flow > 0.6 && overlaps(this, world.player) && !world.player.dead) {
-      world.knockPlayer(null, Math.max(world.player.vy, this.num('force', 380)));
+    const force = this.num('force', 380);
+    if (force > 0 && this.flow > 0.6 && overlaps(this, world.player) && !world.player.dead) {
+      world.knockPlayer(null, Math.max(world.player.vy, force));
     }
   }
 }

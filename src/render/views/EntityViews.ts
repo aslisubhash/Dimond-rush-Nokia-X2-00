@@ -787,10 +787,14 @@ class ClueView extends View {
     const e = this.e;
     if (this.kind === 'ripple' && this.g) {
       this.g.clear();
+      // Ripples ride the surface of the water body they mark.
+      const follow = this.r.world.getEntity(e.str('follow', '')) as unknown as { surfaceY?: number } | undefined;
+      const y = follow?.surfaceY !== undefined ? follow.surfaceY : e.y + 4;
       for (let k = 0; k < 3; k++) {
         const ph = ((time / 1400 + k / 3) % 1 + 1) % 1;
-        this.g.lineStyle(2, 0xffffff, 0.5 * (1 - ph)).strokeEllipse(e.cx, e.y + 4, 10 + ph * 50, 4 + ph * 10);
+        this.g.lineStyle(2, 0xffffff, 0.5 * (1 - ph)).strokeEllipse(e.cx, y, 10 + ph * 50, 4 + ph * 10);
       }
+      if (Math.floor(time / 400) % 3 === 0) this.r.particles.burst('bubbles', e.cx + (hash2(time, 3) - 0.5) * 20, y + 20, 1);
     }
     if (this.kind === 'sparkle' && Math.floor(time / 90) % 11 === 0) this.r.particles.burst('magic', e.cx + (hash2(time, 1) - 0.5) * 20, e.cy, 1);
     if (this.kind === 'glyph' && this.s) this.s.setAlpha(0.4 + Math.sin(time / 500) * 0.15);

@@ -340,6 +340,8 @@ export function validateLevel(spec: LevelSpec): ValidationIssue[] {
   // Dependencies.
   for (const d of defs) {
     for (const r of d.requires) if (!ids.has(r)) err(`${d.id} requires unknown entity '${r}'`);
+    const unless = d.props['unless'];
+    if (Array.isArray(unless)) for (const r of unless as string[]) if (!ids.has(r)) err(`${d.id} 'unless' references unknown entity '${r}'`);
   }
   const actionTargets = new Set<string>();
   for (const t of spec.triggers ?? []) {
