@@ -46,6 +46,7 @@ export const PRESETS: Record<string, Preset> = {
   death: { texture: 'soft', speed: [40, 200], angle: [0, 360], life: [500, 1200], scale: [1.5, 0], alpha: [1, 0], gravity: -30, tint: [0xffffff, 0xffe28a, 0xb65cff], blend: ADD, count: 30 },
   chest_open: { texture: 'spark', speed: [80, 260], angle: [230, 310], life: [400, 900], scale: [1.4, 0], alpha: [1, 0], gravity: 250, tint: [0xffd35a, 0xffffff], blend: ADD, count: 24 },
   secret_found: { texture: 'spark', speed: [60, 240], angle: [0, 360], life: [500, 1100], scale: [1.6, 0], alpha: [1, 0], gravity: -30, tint: [0xe0a8ff, 0xffffff, 0x7cf2c9], blend: ADD, count: 28 },
+  frost: { texture: 'flake', speed: [20, 90], angle: [0, 360], life: [400, 900], scale: [1, 0.3], alpha: [1, 0], gravity: 20, tint: [0xffffff, 0xbfe6ff], blend: NORMAL, count: 8 },
   echo: { texture: 'glow', speed: [0, 0], angle: [0, 0], life: [700, 700], scale: [0.2, 1.6], alpha: [0.8, 0], gravity: 0, tint: [0x9fe6ff], blend: ADD, count: 1 },
 };
 

@@ -103,3 +103,63 @@ describe('5-2 Ice Slides', () => {
     expect(feet(w)).toBeCloseTo(18, 0);
   });
 });
+
+describe('5-3 Frozen Lake', () => {
+  it('icy water hurts the longer Arin swims', () => {
+    const w = levelWorld('5-3');
+    run(w, 0.5);
+    teleport(w, 22, 18);
+    run(w, 1.5);
+    expect(w.player.health).toBe(w.player.maxHealth);
+    run(w, 1.5);
+    expect(w.player.health).toBe(w.player.maxHealth - 1);
+  });
+  it('the lake can be crossed on the ice sheets and floes', () => {
+    const w = levelWorld('5-3');
+    w.invulnerable = true; // route check; the frost bat is fought separately
+    run(w, 0.5);
+    const floe = w.getEntity('floe')!;
+    walkTo(w, 9);
+    hopTo(w, 13);
+    walkTo(w, 17);
+    hopTo(w, 20);
+    hopTo(w, 25);
+    hopTo(w, 29);
+    walkTo(w, 33);
+    until(w, () => floe.x / 32 < 35.3);
+    hopTo(w, 36.5);
+    until(w, () => floe.x / 32 > 42.7);
+    hopTo(w, 48);
+    walkTo(w, 52);
+    hopTo(w, 55);
+    hopTo(w, 61);
+    expect(feet(w)).toBeCloseTo(14, 0);
+    expect(w.player.x / 32).toBeGreaterThan(58.5);
+    expect(w.player.state).not.toBe('SWIM');
+  });
+  it('the dam drains the lake and unseals the key cave', () => {
+    const w = levelWorld('5-3');
+    run(w, 0.5);
+    w.getEntity('lv_dam')!.interact(w);
+    run(w, 6);
+    expect((w.getEntity('lake') as unknown as { surfaceY: number }).surfaceY).toBeGreaterThanOrEqual(23 * 32 - 1);
+    expect(w.getEntity('gate_cave')?.solidKind()).toBeNull();
+    teleport(w, 59, 17);
+    climbTo(w, 23);
+    walkTo(w, 6);
+    expect(w.player.x / 32).toBeLessThan(8);
+    expect(w.player.health).toBe(w.player.maxHealth);
+  });
+  it('raising the pond floats Arin up to the exit cliff', () => {
+    const w = levelWorld('5-3');
+    w.invulnerable = true;
+    run(w, 0.5);
+    teleport(w, 67, 13);
+    run(w, 0.05, { interact: true, interactPressed: true });
+    teleport(w, 83, 13);
+    run(w, 5);
+    expect(feet(w)).toBeLessThan(11.2);
+    hopTo(w, 88);
+    expect(feet(w)).toBeCloseTo(10, 0);
+  });
+});

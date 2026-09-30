@@ -96,7 +96,29 @@ export class FluidBody extends Entity {
   }
 }
 
-export class WaterBody extends FluidBody {}
+export class WaterBody extends FluidBody {
+  /** Seconds the player has spent in this (icy) water. */
+  chill = 0;
+  override update(world: WorldApi, dt: number): void {
+    super.update(world, dt);
+    if (!this.bool('cold', false)) return;
+    const p = world.player;
+    const inside = !p.dead && this.contains(p.x + p.w / 2, p.y + p.h * 0.45);
+    if (!inside) {
+      this.chill = Math.max(0, this.chill - dt * 2);
+      return;
+    }
+    const tick = this.num('coldTick', 2.5);
+    const before = this.chill;
+    this.chill += dt;
+    if (Math.floor(before / tick) !== Math.floor(this.chill / tick)) {
+      world.damagePlayer(1, p.x + p.w / 2, 'cold');
+      world.emit({ kind: 'particles', preset: 'frost', x: p.x + p.w / 2, y: p.y + p.h / 2, count: 10 });
+    } else if (Math.floor(before * 3) !== Math.floor(this.chill * 3)) {
+      world.emit({ kind: 'particles', preset: 'frost', x: p.x + p.w / 2, y: p.y + 8, count: 1 });
+    }
+  }
+}
 export class LavaBody extends FluidBody {}
 
 /** Vertical waterfall. Flowing pushes the player down and emits a signal (drives water wheels). */
