@@ -196,3 +196,41 @@ describe('6-4 Sky Guardians', () => {
     expect(swings).toBeGreaterThanOrEqual(3);
   });
 });
+
+describe('6-5 Light Beams', () => {
+  const rot = (w: W, id: string): void => {
+    (w.getEntity(id) as unknown as { rotate: (x: unknown) => void }).rotate(w);
+    run(w, 0.3);
+  };
+  it('nothing is solved at the start', () => {
+    const w = levelWorld('6-5');
+    run(w, 1);
+    for (const id of ['rx_a', 'rx_b', 'relay', 'rx_hidden']) expect(w.getEntity(id)?.active, id).toBe(false);
+  });
+  it('turning the first mirror sends the sunbeam into the receiver and forms the bridge', () => {
+    const w = levelWorld('6-5');
+    run(w, 0.5);
+    rot(w, 'mirror_a');
+    run(w, 1);
+    expect(w.getEntity('rx_a')?.active).toBe(true);
+    expect(w.getEntity('bridge_a')?.solidKind()).toBe('top');
+  });
+  it('the lever flips the floating mirror down onto the second receiver', () => {
+    const w = levelWorld('6-5');
+    run(w, 0.5);
+    w.getEntity('lv_mirror')!.interact(w);
+    run(w, 1);
+    expect(w.getEntity('rx_b')?.active).toBe(true);
+    expect(w.getEntity('bridge_b')?.solidKind()).toBe('top');
+  });
+  it('the sun on the relay crystal raises the lift and its beam reaches the hidden island', () => {
+    const w = levelWorld('6-5');
+    run(w, 0.5);
+    rot(w, 'mirror_c');
+    run(w, 4);
+    expect(w.getEntity('relay')?.active).toBe(true);
+    expect(w.getEntity('sun_lift')!.y / 32).toBeLessThan(10.5);
+    expect(w.getEntity('rx_hidden')?.active).toBe(true);
+    expect(w.getEntity('bridge_hidden')?.solidKind()).toBe('top');
+  });
+});
