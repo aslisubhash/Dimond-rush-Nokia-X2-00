@@ -17,9 +17,9 @@ Each phase lists its deliverables and how it is verified.
 | 10 | UI | Title, story, world map, HUD, pause, settings (remap, accessibility), results, touch controls | e2e smoke |
 | 11 | World 1 | 1-1 → 1-8 | validator + scripted playthrough tests |
 | 12 | Boss system | Data-driven phases, stun sources, weak points, six boss "brains" | `tests/unit/boss.test.ts` |
-| 13 | Worlds 2–6 | 40 further levels | `npm run validate-levels` |
+| 13 | Worlds 2–6 | 40 further levels | `npm run validate-levels`, per-world simulation tests (`tests/unit/world*.test.ts`) |
 | 14 | Optimization | pooling (projectiles, particles, beam segments), tilemap culling, no per-frame allocation in hot loops | FPS readout (F1) |
-| 15 | QA | unit tests, validator, Playwright acceptance flow | CI scripts |
+| 15 | QA | unit tests, validator, Playwright acceptance flow | `npm test`, `npm run validate-levels`, `npm run test:e2e` |
 
 ## Vertical slice order (as requested)
 
@@ -44,3 +44,12 @@ Each phase lists its deliverables and how it is verified.
 | Soft-locks in physics puzzles | Blocks return home when lost; pause menu "Restart from checkpoint" resets movable stones; validator reachability |
 | Frame-rate dependence | Fixed-step simulation (120 Hz) with accumulator; renderer interpolation-free and read-only |
 | Mobile performance | Quality setting (low disables weather density), pooled particles, tilemap culling |
+
+## Status
+
+All phases are complete:
+
+* **48 levels** across six worlds, each validated (0 errors, 0 warnings) and each world covered by scripted simulation tests of its key puzzles, secrets and boss.
+* **6 bosses** with multi-phase puzzle fights, each beaten end-to-end in `tests/unit/boss.test.ts`.
+* **166 unit/simulation tests**, **2 Playwright e2e tests** (full new-game flow; all 48 levels boot without errors).
+* Docs: README, GAME_DESIGN, ARCHITECTURE, LEVEL_SPEC (generated from data).

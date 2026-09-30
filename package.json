@@ -2,7 +2,7 @@
   "name": "relics-of-the-six-temples",
   "private": true,
   "version": "0.1.0",
-  "description": "Relics of the Six Temples — Season 2. A 2D cinematic action-platformer / environmental puzzle adventure for HTML5/WebGL.",
+  "description": "Relics of the Six Temples \u2014 Season 2. A 2D cinematic action-platformer / environmental puzzle adventure for HTML5/WebGL.",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "validate-levels": "tsx scripts/validate-levels.ts"
+    "validate-levels": "tsx scripts/validate-levels.ts",
+    "docs:levels": "tsx scripts/gen-level-spec.ts"
   },
   "dependencies": {
     "@fontsource/cinzel": "^5.3.0",
