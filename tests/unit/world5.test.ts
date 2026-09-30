@@ -319,3 +319,65 @@ describe('5-6 Ice Lifts', () => {
     expect(w.player.x / 32).toBeGreaterThan(43);
   });
 });
+
+describe('5-7 Blizzard Path', () => {
+  const gust = (w: W): number => (w.getEntity('blizzard') as unknown as { gust: number }).gust;
+  it('rocks shelter their lee side from the blizzard', () => {
+    const w = levelWorld('5-7');
+    run(w, 0.5);
+    until(w, () => gust(w) >= 1);
+    expect(w.windAt(27 * 32, 17 * 32).ax).toBe(0); // right behind the rock at x28
+    expect(w.windAt(34 * 32, 17 * 32).ax).toBeLessThan(0); // out in the open
+  });
+  it('a gust blows exposed braziers out, but sheltered ones keep burning', () => {
+    const w = levelWorld('5-7');
+    run(w, 0.5);
+    until(w, () => gust(w) === 0);
+    w.getEntity('hut_fire_1')!.interact(w);
+    w.getEntity('hut_fire_2')!.interact(w);
+    until(w, () => gust(w) >= 1);
+    run(w, 0.2);
+    expect(w.getEntity('hut_fire_1')?.active).toBe(true);
+    expect(w.getEntity('hut_fire_2')?.active).toBe(false);
+  });
+  it('lighting all three braziers in one lull opens the hut for good', () => {
+    const w = levelWorld('5-7');
+    run(w, 0.5);
+    until(w, () => gust(w) >= 1);
+    until(w, () => gust(w) === 0);
+    for (const id of ['hut_fire_1', 'hut_fire_2', 'hut_fire_3']) w.getEntity(id)!.interact(w);
+    run(w, 2);
+    expect(w.getEntity('sd_hut')?.solidKind()).toBeNull();
+    until(w, () => gust(w) >= 1);
+    run(w, 2);
+    expect(w.getEntity('hut_fire_2')?.active).toBe(false);
+    expect(w.getEntity('sd_hut')?.solidKind()).toBeNull();
+  });
+  it('the ridge can be crossed dashing from lee to lee between gusts', () => {
+    const w = levelWorld('5-7');
+    w.invulnerable = true;
+    run(w, 0.5);
+    const lull = (): void => {
+      until(w, () => gust(w) >= 1);
+      until(w, () => gust(w) === 0);
+    };
+    walkTo(w, 13);
+    // [pillar to vault, pit to jump, next lee]
+    const legs: [number, number, number][] = [[14, 20, 27], [28, 0, 45], [46, 54, 57], [58, 65, 71], [72, 80, 87], [88, 95, 103]];
+    for (const [obstacle, pit, lee] of legs) {
+      lull();
+      hopTo(w, obstacle + (obstacle === 46 ? 2 : 3));
+      if (obstacle === 46) walkTo(w, 51, 1);
+      if (pit) {
+        walkTo(w, pit - 1, 1.5);
+        hopTo(w, pit + 3);
+      }
+      walkTo(w, lee, 2);
+      expect(w.player.x / 32, `leg ${obstacle}`).toBeGreaterThan(lee - 0.6);
+    }
+    lull();
+    hopTo(w, 107);
+    walkTo(w, 118, 3);
+    expect(w.player.state).toBe('VICTORY');
+  });
+});

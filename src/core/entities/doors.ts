@@ -36,7 +36,10 @@ export class Gate extends Entity {
 
   override onPowerChanged(world: WorldApi, powered: boolean): void {
     if (this.locked && this.type === 'locked_door' && !this.requires.length) return;
-    this.setOpen(world, this.invert ? !powered : powered);
+    const open = this.invert ? !powered : powered;
+    // Latching doors stay open once their condition was met.
+    if (!open && this.bool('latch', false) && this.targetOpen === 1) return;
+    this.setOpen(world, open);
   }
 
   setOpen(world: WorldApi, open: boolean): void {

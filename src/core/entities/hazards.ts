@@ -160,6 +160,11 @@ export class FireSource extends Entity {
   }
   override update(world: WorldApi, dt: number): void {
     this.anim += dt;
+    // Exposed braziers are blown out by strong wind.
+    if (this.active && this.bool('windExposed', false)) {
+      const wind = world.windAt(this.cx, this.cy - 8);
+      if (Math.abs(wind.ax) + Math.abs(wind.ay) > 600) this.set(world, false);
+    }
     if (this.active && this.bool('hurts', false)) {
       const r = { x: this.x + 4, y: this.y - 10, w: this.w - 8, h: 14 };
       if (overlaps(r, world.player)) world.damagePlayer(1, this.cx, 'fire');
