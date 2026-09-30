@@ -292,3 +292,51 @@ describe('5-8 Ice Dragon', () => {
     expect(w.getEntity('chest_seal')?.powered).toBe(true);
   });
 });
+
+describe('6-8 Sky Deity', () => {
+  it('storm, pylons, shield beam, ring mirrors, then the Heart Seal', () => {
+    const w = levelWorld('6-8');
+    w.invulnerable = true;
+    const boss = w.boss as Boss;
+    teleport(w, 12, 23);
+    run(w, 3.5, {});
+    expect(boss.state).toBe('fight');
+    expect(boss.phase?.id).toBe('barrage');
+    // Pylons are dull until the deity awakens them.
+    w.getEntity('pylon_1')!.interact(w);
+    run(w, 0.2, {});
+    expect(w.getEntity('pylon_1')?.active).toBe(false);
+    run(w, 12.5, {});
+    expect(boss.phase?.id).toBe('pylons');
+    for (const id of ['pylon_1', 'pylon_2', 'pylon_3', 'pylon_4']) {
+      w.getEntity(id)!.interact(w);
+      run(w, 0.2, {});
+    }
+    run(w, 0.5, {});
+    expect(boss.phase?.id).toBe('beams');
+    (w.getEntity('mirror_floor') as unknown as { rotate: (x: unknown) => void }).rotate(w);
+    run(w, 0.5, {});
+    expect(boss.phase?.id).toBe('rings');
+    w.getEntity('ring_lever_1')!.interact(w);
+    run(w, 0.3, {});
+    expect(boss.phase?.id).toBe('rings');
+    w.getEntity('ring_lever_2')!.interact(w);
+    run(w, 0.5, {});
+    expect(boss.phase?.id).toBe('expose');
+    run(w, 3.5, {});
+    expect(boss.phase?.id).toBe('final');
+    run(w, 3, {}); // the seal descends
+    for (let k = 0; k < 6 && boss.state === 'fight'; k++) {
+      const wp = boss.brain.weakPoint(boss)!;
+      w.player.x = wp.x - w.player.w - 4;
+      w.player.y = 24 * 32 - w.player.h;
+      w.player.facing = 1;
+      run(w, 0.1, {});
+      run(w, 1 / 120, { attackPressed: true });
+      run(w, 0.6, {});
+    }
+    run(w, 4.5, {});
+    expect(boss.state).toBe('dead');
+    expect(w.getEntity('chest_seal')?.powered).toBe(true);
+  });
+});

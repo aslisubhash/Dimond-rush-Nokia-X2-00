@@ -357,6 +357,11 @@ export class TriggerZone extends Entity {
   override onPlayerRespawn(): void {
     if (this.bool('resetOnDeath', false)) this.active = false;
   }
+  override handleAction(_world: WorldApi, action: LevelAction): void {
+    // Scripted zones (boss phases) can be switched on/off directly.
+    if (action.type === 'START') this.active = true;
+    else if (action.type === 'STOP' || action.type === 'RESET') this.active = false;
+  }
 }
 
 /** Delayed / periodic signal: active for `on` seconds every `period` seconds, or pulses when powered. */
