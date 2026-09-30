@@ -205,7 +205,20 @@ export class Icicle extends Entity {
       this.vy = Math.min(this.vy + 2000 * dt, 900);
       this.y += this.vy * dt;
       if (overlaps(this, p) && !p.dead) world.damagePlayer(1, this.cx, 'icicle');
-      if (world.map.isSolidAt(this.cx, this.y + this.h) || this.y > world.level.heightPx) {
+      // Falling ice crushes enemies and shatters ice blocks it lands on.
+      let landed = false;
+      for (const e of world.entities) {
+        if (e === this || e.removed) continue;
+        const c = e as unknown as { crush?: (w: WorldApi) => void; alive?: boolean };
+        if (typeof c.crush === 'function' && c.alive && overlaps(this, e)) c.crush(world);
+        if (e.type === 'ice_block' && this.cx > e.x && this.cx < e.x + e.w && this.y + this.h >= e.y && this.y < e.y + e.h) {
+          e.removed = true;
+          world.emit({ kind: 'particles', preset: 'ice_shard', x: e.cx, y: e.cy, count: 20 });
+          world.fire('SIGNAL_ON', e.id);
+          landed = true;
+        } else if (e.solidKind() === 'full' && this.cx > e.x && this.cx < e.x + e.w && this.y + this.h >= e.y && this.y + this.h < e.y + 24) landed = true;
+      }
+      if (landed || world.map.isSolidAt(this.cx, this.y + this.h) || this.y > world.level.heightPx) {
         this.state = 'gone';
         this.timer = this.num('regrow', 3.5);
         const stone = this.str('variant', 'ice') === 'stone';

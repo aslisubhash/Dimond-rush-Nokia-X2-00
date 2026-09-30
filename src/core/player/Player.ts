@@ -490,6 +490,14 @@ export class Player implements PlayerView {
     const vine = this.onVine();
     const vy = (i.down ? 1 : 0) - (i.up ? 1 : 0);
     const dir = this.horizontalIntent();
+    // Standing at the foot of a ladder: walking sideways steps off it.
+    if (!vine && dir !== 0 && vy >= 0) {
+      this.probeGround();
+      if (this.grounded) {
+        this.fsm.change('RUN');
+        return;
+      }
+    }
     this.vy = vy * PLAYER.climbSpeed;
     this.vx = vine ? dir * PLAYER.climbSpeed * 0.6 : 0;
     const mr = this.moveRes;

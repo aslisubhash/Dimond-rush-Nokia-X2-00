@@ -81,6 +81,8 @@ class ChestView extends View<Chest> {
 
 class BlockView extends View<PhysicsBlock> {
   private s: Phaser.GameObjects.Sprite;
+  /** Extra tiles for blocks taller/wider than one tile (e.g. ice pillars). */
+  private extra: Phaser.GameObjects.Sprite[] = [];
   constructor(r: RenderContext, e: PhysicsBlock) {
     super(r, e);
     let key = `stone_block_${r.worldId}`;
@@ -89,20 +91,36 @@ class BlockView extends View<PhysicsBlock> {
     if (e.type === 'ice_block') key = 'ice_block';
     if (e.type === 'rolling_stone') key = 'rolling_stone';
     if (e.type === 'magnet_stone') key = `magnet_stone_${(e as unknown as MagnetStone).polarity > 0 ? 'N' : 'S'}`;
-    this.s = r.scene.add.sprite(e.cx, e.cy, key, 0).setDepth(DEPTH.OBJECTS);
+    const tiled = e.type !== 'rolling_stone' && (e.w > TILE || e.h > TILE);
+    this.s = r.scene.add.sprite(tiled ? e.x + TILE / 2 : e.cx, tiled ? e.y + TILE / 2 : e.cy, key, 0).setDepth(DEPTH.OBJECTS);
     if (e.type === 'rolling_stone') this.s.setDisplaySize(e.w, e.h);
+    if (tiled) {
+      for (let ty = 0; ty < Math.round(e.h / TILE); ty++) {
+        for (let tx = 0; tx < Math.round(e.w / TILE); tx++) {
+          if (tx === 0 && ty === 0) continue;
+          this.extra.push(r.scene.add.sprite(0, 0, key, 0).setDepth(DEPTH.OBJECTS).setData('ox', tx * TILE).setData('oy', ty * TILE));
+        }
+      }
+    }
   }
   sync(time: number): void {
     const e = this.e;
+    const tiled = this.extra.length > 0;
     this.s.setVisible(!e.removed);
-    this.s.setPosition(e.cx, e.cy);
+    this.s.setPosition(tiled ? e.x + TILE / 2 : e.cx, tiled ? e.y + TILE / 2 : e.cy);
     if (e.type === 'face_stone' || e.type === 'rolling_stone') this.s.setRotation(e.anim);
     if (e.type === 'magnet_stone') this.s.setTint((e as unknown as MagnetStone).magnetized ? (Math.floor(time / 80) % 2 ? 0xffffff : 0xffc0c0) : 0xffffff);
-    if (e.type === 'ice_block') this.s.setAlpha(1 - (e as unknown as IceBlock).melt * 0.7).setScale(1, 1 - (e as unknown as IceBlock).melt * 0.4);
+    if (e.type === 'ice_block' && !tiled) this.s.setAlpha(1 - (e as unknown as IceBlock).melt * 0.7).setScale(1, 1 - (e as unknown as IceBlock).melt * 0.4);
     if (e.type === 'rolling_stone' && (e as unknown as RollingStone).released === false) this.s.setRotation(0);
+    if (tiled) {
+      const a = e.type === 'ice_block' ? 1 - (e as unknown as IceBlock).melt * 0.7 : 1;
+      this.s.setAlpha(a);
+      for (const x of this.extra) x.setVisible(!e.removed).setAlpha(a).setPosition(e.x + TILE / 2 + (x.getData('ox') as number), e.y + TILE / 2 + (x.getData('oy') as number));
+    }
   }
   destroy(): void {
     this.s.destroy();
+    for (const x of this.extra) x.destroy();
   }
 }
 

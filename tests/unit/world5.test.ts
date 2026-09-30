@@ -223,3 +223,54 @@ describe('5-4 Wind Cavern', () => {
     expect(w.stats.deaths).toBe(0);
   });
 });
+
+describe('5-5 Falling Ice', () => {
+  it('running through the icicle gallery outpaces the falling ice', () => {
+    const w = levelWorld('5-5');
+    run(w, 0.5);
+    walkTo(w, 30);
+    expect(w.player.health).toBe(w.player.maxHealth);
+    const fallen = w.entities.filter((e) => e.type === 'icicle' && (e as unknown as { state: string }).state !== 'hang');
+    expect(fallen.length).toBeGreaterThanOrEqual(5);
+  });
+  it('an icicle crushes an enemy that walks beneath it', () => {
+    const w = levelWorld('5-5');
+    w.invulnerable = true;
+    run(w, 0.5);
+    const foe = w.entities.find((e) => e.type === 'enemy' && Math.abs(e.x / 32 - 43) < 3)! as unknown as { alive: boolean; x: number };
+    const ice = w.entities.find((e) => e.type === 'icicle' && Math.floor(e.x / 32) === 46)!;
+    // Hold the enemy right under the icicle and shake it loose.
+    ice.handleAction(w, { type: 'START' });
+    for (let i = 0; i < 240 && foe.alive; i++) {
+      foe.x = ice.x - 4;
+      run(w, 1 / 120);
+    }
+    expect(foe.alive).toBe(false);
+  });
+  it('the lever drops the great icicle down the chimney and shatters the ice pillar', () => {
+    const w = levelWorld('5-5');
+    run(w, 0.5);
+    expect(w.getEntity('ice_pillar')?.removed).toBe(false);
+    w.getEntity('lv_chimney')!.interact(w);
+    run(w, 2);
+    expect(w.getEntity('ice_pillar')?.removed).toBe(true);
+    teleport(w, 60, 17);
+    walkTo(w, 72);
+    expect(w.player.x / 32).toBeGreaterThan(71);
+  });
+  it('shaking the lone icicle loose and stepping aside shatters the ice plug', () => {
+    const w = levelWorld('5-5');
+    w.invulnerable = true;
+    run(w, 0.5);
+    teleport(w, 47, 17);
+    walkTo(w, 49);
+    walkTo(w, 51);
+    run(w, 2);
+    expect(w.getEntity('ice_plug')?.removed).toBe(true);
+    walkTo(w, 49);
+    climbTo(w, 23);
+    expect(feet(w)).toBeGreaterThan(22);
+    walkTo(w, 45);
+    expect(w.player.x / 32).toBeLessThan(46);
+  });
+});
