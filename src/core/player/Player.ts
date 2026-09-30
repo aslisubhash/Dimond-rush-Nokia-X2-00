@@ -558,12 +558,14 @@ export class Player implements PlayerView {
   }
 
   private moveY(dy: number, ignore?: SolidProvider | null, res?: MoveResult): number {
-    const body = this as { x: number; y: number; w: number; h: number; dropThrough?: boolean };
+    const body = this as { x: number; y: number; w: number; h: number; dropThrough?: boolean; ladderTops?: boolean };
     body.dropThrough = this.dropTimer > 0 || (this.fsm.state === 'CLIMB' && this.input.down);
     return this.world.collision.moveY(body, dy, ignore ?? null, res);
   }
 
   dropThrough = false;
+  /** Arin can stand on the top rung of a ladder (see CollisionWorld.ladderTop). */
+  readonly ladderTops = true;
 
   probeGround(): void {
     this.dropThrough = this.dropTimer > 0;
@@ -654,7 +656,7 @@ export class Player implements PlayerView {
     for (let tx = tx0; tx <= tx1; tx++) {
       const p = map.props(tx, fy);
       if (p.solid) return false;
-      if (p.oneWay) any = true;
+      if (p.oneWay || (p.climbable && !map.props(tx, fy - 1).climbable)) any = true;
     }
     return any;
   }

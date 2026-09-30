@@ -104,3 +104,27 @@ export function hopTo(world: GameWorld, tx: number, hold = 0.3, maxTime = 1.5): 
   }
   run(world, 0.05);
 }
+
+/** Walk (run) horizontally until the player's centre is over tile column `tx`. */
+export function walkTo(world: GameWorld, tx: number, maxTime = 12): void {
+  const p = world.player;
+  const target = tx * 32 + 16;
+  for (let i = 0; i < maxTime * SIM_HZ; i++) {
+    const cx = p.x + p.w / 2;
+    if (Math.abs(cx - target) < 3) break;
+    world.step(input(cx < target ? { right: true, walk: Math.abs(cx - target) < 24 } : { left: true, walk: Math.abs(cx - target) < 24 }));
+  }
+  run(world, 0.1);
+}
+
+/** Climb (up/down) while on a ladder until the feet reach row `row` or time runs out. */
+export function climbTo(world: GameWorld, row: number, maxTime = 8): void {
+  const p = world.player;
+  const up = (p.y + p.h) / 32 > row;
+  for (let i = 0; i < maxTime * SIM_HZ; i++) {
+    const f = (p.y + p.h) / 32;
+    if (up ? f <= row + 0.02 : f >= row - 0.02) break;
+    world.step(input(up ? { up: true } : { down: true }));
+  }
+  run(world, 0.1);
+}

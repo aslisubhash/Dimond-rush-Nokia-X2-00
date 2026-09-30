@@ -121,6 +121,7 @@ export const EN: Record<string, string> = {
   'hint.lever': 'Levers stay where you set them. Pull again to reverse.',
   'hint.valve': 'Turn cooling valves to drain the lava.',
   'hint.fireShaft': 'Rest on the landings and climb between bursts.',
+  'hint.douse': 'A cooling valve can douse a flame wheel.',
   'hint.fireJet': 'Fire shafts warn with sparks before they erupt.',
   'hint.heat': 'Braziers melt ice. Heat changes frozen things.',
   'hint.risingLava': 'The magma is rising. Climb!',

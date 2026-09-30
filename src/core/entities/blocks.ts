@@ -61,6 +61,7 @@ export class PhysicsBlock extends Entity implements Pushable, Carrier {
       world.emit({ kind: 'particles', preset: 'dust', x: this.cx, y: this.y + this.h, count: 1 });
     }
     if (moved !== 0) {
+      this.snapIntoGap(world, Math.abs(moved));
       this.anim += Math.abs(moved) / 60;
       if (Math.floor(this.anim * 3) % 2 === 0) world.emit({ kind: 'sound', id: 'stone_push', volume: 0.35 });
       world.fire('STONE_MOVED', this.id);
@@ -98,7 +99,7 @@ export class PhysicsBlock extends Entity implements Pushable, Carrier {
     r.blockerX = r.blockerY = null;
     if (this.rolls && this.vx !== 0) {
       world.collision.moveX(this, this.vx * dt, this, r);
-      this.snapIntoGap(world, dt);
+      this.snapIntoGap(world, Math.abs(this.vx * dt));
       this.crushActors(world);
       if (r.hitX) {
         world.emit({ kind: 'sound', id: 'stone_hit', x: this.cx, y: this.cy });
@@ -138,11 +139,11 @@ export class PhysicsBlock extends Entity implements Pushable, Carrier {
     this.pushedThisStep = false;
   }
 
-  /** Rolling objects that pass over a gap exactly their width drop into it. */
-  private snapIntoGap(world: WorldApi, dt: number): void {
+  /** Stones pushed or rolled over a gap exactly their width drop into it. */
+  private snapIntoGap(world: WorldApi, travel: number): void {
     if (!this.grounded || this.w > TILE) return;
     const tx = Math.round(this.x / TILE);
-    if (Math.abs(this.x - tx * TILE) > Math.abs(this.vx * dt) + 0.01) return;
+    if (Math.abs(this.x - tx * TILE) > travel + 0.01) return;
     const below = Math.floor((this.y + this.h + 1) / TILE);
     const p = world.map.props(tx, below);
     if (p.solid || p.oneWay) return;

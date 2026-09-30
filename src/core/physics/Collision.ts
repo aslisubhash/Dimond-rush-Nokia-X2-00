@@ -28,6 +28,8 @@ export interface MoveResult {
 export interface BodyLike extends Rect {
   /** When true, one-way platforms are ignored (dropping through). */
   dropThrough?: boolean;
+  /** When true, the top rung of a ladder/vine (climbable tile with open space above) is a one-way platform. */
+  ladderTops?: boolean;
 }
 
 const EPS = 0.001;
@@ -133,7 +135,7 @@ export class CollisionWorld {
         let hit = false;
         for (let tx = tx0; tx <= tx1; tx++) {
           const p = this.map.props(tx, ty);
-          if (p.solid || (p.oneWay && !body.dropThrough && oldBottom <= ty * TILE + EPS)) {
+          if (p.solid || ((p.oneWay || this.ladderTop(body, tx, ty)) && !body.dropThrough && oldBottom <= ty * TILE + EPS)) {
             hit = true;
             break;
           }
@@ -234,9 +236,18 @@ export class CollisionWorld {
     if (onTileRow) {
       for (let tx = tx0; tx <= tx1; tx++) {
         const p = this.map.props(tx, ty);
-        if (p.solid || (p.oneWay && !body.dropThrough)) return { solid: null, tile: true };
+        if (p.solid || ((p.oneWay || this.ladderTop(body, tx, ty)) && !body.dropThrough)) return { solid: null, tile: true };
       }
     }
     return null;
+  }
+
+  /** Top rung of a ladder: climbable tile whose tile above is open (only for bodies that opt in). */
+  private ladderTop(body: BodyLike, tx: number, ty: number): boolean {
+    if (!body.ladderTops) return false;
+    const p = this.map.props(tx, ty);
+    if (!p.climbable) return false;
+    const above = this.map.props(tx, ty - 1);
+    return !above.climbable && !above.solid;
   }
 }

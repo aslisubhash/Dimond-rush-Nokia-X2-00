@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { hopTo, levelWorld, run, teleport } from './helpers';
+import { climbTo, hopTo, levelWorld, run, teleport, walkTo } from './helpers';
 
 type W = ReturnType<typeof levelWorld>;
 const feet = (w: W): number => (w.player.y + w.player.h) / 32;
@@ -194,5 +194,47 @@ describe('4-4 Fire Shafts', () => {
     }
     run(w, 2);
     expect(w.getEntity('sd_cache')?.solidKind()).toBeNull();
+  });
+});
+
+describe('4-5 Heat Maze', () => {
+  it('the blocking flame wheel burns until the valve douses it', () => {
+    const w = levelWorld('4-5');
+    run(w, 0.5);
+    teleport(w, 33, 23);
+    run(w, 1.5, { right: true });
+    expect(w.player.health).toBeLessThan(w.player.maxHealth);
+    const w2 = levelWorld('4-5');
+    run(w2, 0.5);
+    teleport(w2, 30, 23);
+    run(w2, 0.05, { interact: true, interactPressed: true });
+    run(w2, 1.6, { right: true });
+    expect(w2.player.x / 32).toBeGreaterThan(42);
+    expect(w2.player.health).toBe(w2.player.maxHealth);
+  });
+  it('the dead-end stone dropped down the ladder shaft lands on the plate and opens the relic door', () => {
+    const w = levelWorld('4-5');
+    run(w, 0.5);
+    teleport(w, 50, 15);
+    run(w, 1.8, { left: true });
+    run(w, 1.5);
+    expect(w.getEntity('plate_shaft')?.active).toBe(true);
+    run(w, 2);
+    expect(w.getEntity('sd_relic')?.solidKind()).toBeNull();
+  });
+  it('the maze can be climbed from the start to the exit', () => {
+    const w = levelWorld('4-5');
+    w.invulnerable = true;
+    run(w, 0.5);
+    walkTo(w, 12);
+    climbTo(w, 24);
+    walkTo(w, 30);
+    run(w, 0.05, { interact: true, interactPressed: true });
+    walkTo(w, 44);
+    climbTo(w, 16);
+    walkTo(w, 6);
+    climbTo(w, 8);
+    walkTo(w, 56);
+    expect(w.player.state).toBe('VICTORY');
   });
 });
