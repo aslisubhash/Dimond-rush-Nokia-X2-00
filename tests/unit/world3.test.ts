@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { entityAt, levelWorld, run, teleport } from './helpers';
+import { entityAt, jump, levelWorld, run, teleport } from './helpers';
 
 type W = ReturnType<typeof levelWorld>;
 const strike = (w: W, id: string, after = 0.1): void => {
@@ -122,5 +122,94 @@ describe('3-5 Magnet Stones', () => {
     run(w, 5);
     expect(w.getEntity('plate_c')?.active).toBe(true);
     expect(w.getEntity('bridge_c')?.solidKind()).toBe('top');
+  });
+});
+
+describe('3-6 Laser Grid', () => {
+  it('crawling keeps Arin below the head-height tunnel laser', () => {
+    const w = levelWorld('3-6');
+    run(w, 0.5);
+    teleport(w, 20, 17);
+    run(w, 0.3, { down: true });
+    run(w, 3, { down: true, right: true });
+    expect(w.player.x / 32).toBeGreaterThan(27);
+    expect(w.player.health).toBe(w.player.maxHealth);
+  });
+  it('levers flip mirrors: clear the curtain, power the laser lock, then clear the lock beam', () => {
+    const w = levelWorld('3-6');
+    run(w, 0.5);
+    w.getEntity('lv_m1')!.interact(w);
+    run(w, 0.3);
+    w.getEntity('lv_m3')!.interact(w);
+    run(w, 0.5);
+    expect(w.getEntity('rx_lock')?.active).toBe(true);
+    w.getEntity('lv_m3')!.interact(w);
+    run(w, 2);
+    expect(open(w, 'gate_lock')).toBe(true);
+    expect(w.getEntity('rx_lock')?.active).toBe(true);
+  });
+  it('a pushed stone shields Arin from the floor laser up to the ladder', () => {
+    const w = levelWorld('3-6');
+    run(w, 0.5);
+    teleport(w, 62, 17);
+    run(w, 5, { right: true });
+    expect(entityAt(w, 'stone_block', 78, 17)).toBeDefined();
+    expect(w.player.health).toBe(w.player.maxHealth);
+  });
+});
+
+describe('3-7 Crystal Bridge', () => {
+  const feet = (w: W): number => Math.round((w.player.y + w.player.h) / 32);
+  it('a chain of timed bridges can be sprinted', () => {
+    const w = levelWorld('3-7');
+    run(w, 0.5);
+    teleport(w, 22, 17);
+    run(w, 0.05, { interact: true, interactPressed: true });
+    run(w, 1.6, { right: true });
+    run(w, 0.05, { interact: true, interactPressed: true });
+    expect(w.getEntity('node_br3')?.active).toBe(true);
+    run(w, 2.4, { right: true });
+    expect(w.player.x / 32).toBeGreaterThan(47);
+    expect(feet(w)).toBe(18);
+    expect(w.player.health).toBe(w.player.maxHealth);
+  });
+  it('bridges fade when their crystal runs out', () => {
+    const w = levelWorld('3-7');
+    run(w, 0.5);
+    w.getEntity('node_br1')!.interact(w);
+    run(w, 1);
+    expect(w.getEntity('br1')?.solidKind()).toBe('top');
+    run(w, 6);
+    expect(w.getEntity('br1')?.solidKind()).toBeNull();
+  });
+  it('the lamp holds the long bridge; dropping through it reaches the relic alcove and back', () => {
+    const w = levelWorld('3-7');
+    run(w, 0.5);
+    w.getEntity('lv_lamp')!.interact(w);
+    run(w, 0.5);
+    expect(w.getEntity('br4')?.solidKind()).toBe('top');
+    teleport(w, 74, 17);
+    run(w, 0.05, { down: true, jump: true, jumpPressed: true });
+    run(w, 0.8);
+    expect(feet(w)).toBe(20);
+    run(w, 0.3, { down: true });
+    run(w, 1.5, { right: true, down: true });
+    expect(w.player.x / 32).toBeGreaterThan(77.5);
+    run(w, 0.3);
+    run(w, 1.0, { left: true, down: true });
+    run(w, 0.3);
+    teleport(w, 74, 19);
+    jump(w, -1, 0.5, 0.6);
+    expect(feet(w)).toBe(18);
+  });
+  it('the final relay: charge, sprint, charge again, reach the exit', () => {
+    const w = levelWorld('3-7');
+    run(w, 0.5);
+    teleport(w, 84, 17);
+    run(w, 0.05, { interact: true, interactPressed: true });
+    run(w, 1.6, { right: true });
+    run(w, 0.05, { interact: true, interactPressed: true });
+    run(w, 1.5, { right: true });
+    expect(w.player.state).toBe('VICTORY');
   });
 });

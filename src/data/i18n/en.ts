@@ -110,6 +110,8 @@ export const EN: Record<string, string> = {
   'hint.echo': 'Strike the echo stone and listen. The cave remembers a melody.',
   'hint.magnet': 'Magnets pull and push marked stones. Switch polarity with {interact}.',
   'hint.laser': 'Lasers burn. Blocks and mirrors can stop or bend them.',
+  'hint.crawlLaser': 'Crouch ({down}) and crawl beneath beams at head height.',
+  'hint.mirrorLever': 'Levers turn distant mirrors. Follow the beam.',
   'hint.timedCrystals': 'Some crystals hold their charge only briefly. Charge both before the first one fades.',
   'hint.bridge': 'Charged crystals form bridges — but only for a moment.',
   'hint.lava': 'Lava is deadly. Learn the rhythm of every platform.',

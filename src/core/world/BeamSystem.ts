@@ -114,7 +114,7 @@ export class BeamSystem {
         if (kind === 'light') {
           if (hit instanceof LightReceiver) hit.lit = true;
           if (hit instanceof CrystalNode) hit.lit = true;
-        }
+        } else if (hit instanceof LightReceiver && hit.bool('acceptLaser', false)) hit.lit = true;
         this.push(sx, sy, cx, cy, kind, world);
         return;
       }
