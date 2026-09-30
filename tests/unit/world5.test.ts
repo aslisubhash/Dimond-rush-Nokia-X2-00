@@ -274,3 +274,48 @@ describe('5-5 Falling Ice', () => {
     expect(w.player.x / 32).toBeLessThan(46);
   });
 });
+
+describe('5-6 Ice Lifts', () => {
+  const e = (w: W, id: string): { x: number; y: number; pause: number } => w.getEntity(id) as unknown as { x: number; y: number; pause: number };
+  it('the tower can be climbed on its lifts and the summit updraft', () => {
+    const w = levelWorld('5-6');
+    w.invulnerable = true; // frost bats aside
+    run(w, 0.5);
+    walkTo(w, 8);
+    until(w, () => e(w, 'ice_lift_1').y / 32 > 56.9 && e(w, 'ice_lift_1').pause > 0.5);
+    hopTo(w, 10);
+    until(w, () => e(w, 'ice_lift_1').y / 32 < 47.1);
+    hopTo(w, 14);
+    walkTo(w, 24);
+    until(w, () => e(w, 'ice_lift_2a').y / 32 > 44.9 && e(w, 'ice_lift_2a').pause > 0.4);
+    hopTo(w, 28);
+    until(w, () => e(w, 'ice_lift_2a').y / 32 < 39.1);
+    hopTo(w, 33);
+    until(w, () => e(w, 'ice_lift_2b').y / 32 < 33.1);
+    hopTo(w, 37);
+    walkTo(w, 44);
+    run(w, 0.05, { interact: true, interactPressed: true });
+    walkTo(w, 38);
+    until(w, () => e(w, 'ice_lift_3').y / 32 < 22.1);
+    walkTo(w, 34);
+    expect(feet(w)).toBeCloseTo(22, 0);
+    walkTo(w, 24);
+    run(w, 3);
+    run(w, 1.2, { left: true });
+    walkTo(w, 5);
+    expect(w.player.state).toBe('VICTORY');
+    expect(w.stats.deaths).toBe(0);
+  });
+  it('the quick ice lift flicks Arin up to the hidden alcove', () => {
+    const w = levelWorld('5-6');
+    w.invulnerable = true;
+    run(w, 0.5);
+    teleport(w, 36, 21);
+    until(w, () => e(w, 'flick_lift').y / 32 > 21.9 && e(w, 'flick_lift').pause > 0.2);
+    hopTo(w, 41);
+    until(w, () => e(w, 'flick_lift').y / 32 < 16.1);
+    walkTo(w, 45, 1);
+    expect(feet(w)).toBeCloseTo(16, 0);
+    expect(w.player.x / 32).toBeGreaterThan(43);
+  });
+});

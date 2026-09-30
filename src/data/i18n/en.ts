@@ -136,6 +136,7 @@ export const EN: Record<string, string> = {
   'hint.updraft': 'Step into the updraft and let it lift you. Hold away from the spikes.',
   'hint.sail': 'Step onto the sail — the fan wakes when it feels your weight.',
   'hint.icicleHammer': 'Falling ice shatters ice. Find what holds the great icicle.',
+  'hint.iceLift': 'Ice lifts are slippery — stand still while they move.',
   'hint.wind': 'Wind pushes you and anything light.',
   'hint.fallingIce': 'Icicles fall when disturbed. Keep moving.',
   'hint.blizzard': 'Gusts come in waves. Shelter behind walls between them.',
