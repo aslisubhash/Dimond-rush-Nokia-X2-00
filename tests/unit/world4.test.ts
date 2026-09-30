@@ -280,3 +280,49 @@ describe('4-6 Rising Lava', () => {
     expect(w.stats.deaths).toBeGreaterThan(0);
   });
 });
+
+describe('4-7 Flame Wheels', () => {
+  /** True just after an arm has swept out of the low (floor-reaching) sector. */
+  const gapOpening = (w: W, id: string): boolean => {
+    const wheel = w.getEntity(id) as unknown as { angle: number; arms: number };
+    for (let a = 0; a < wheel.arms; a++) {
+      const deg = ((((wheel.angle + (a * Math.PI * 2) / wheel.arms) * 180) / Math.PI) % 360 + 360) % 360;
+      if (deg > 134 && deg < 140) return true;
+    }
+    return false;
+  };
+  it('the great wheel can be passed in the gap behind an arm', () => {
+    const w = levelWorld('4-7');
+    run(w, 0.5);
+    teleport(w, 69, 17);
+    until(w, () => gapOpening(w, 'wheel_great'));
+    walkTo(w, 77, 3);
+    expect(w.player.x / 32).toBeGreaterThan(76);
+    expect(w.player.health).toBe(w.player.maxHealth);
+  });
+  it('the twin wheels burn unless the valve douses them', () => {
+    const w = levelWorld('4-7');
+    run(w, 0.5);
+    teleport(w, 45, 17);
+    walkTo(w, 61, 4);
+    expect(w.player.health).toBeLessThan(w.player.maxHealth);
+    const w2 = levelWorld('4-7');
+    run(w2, 0.5);
+    teleport(w2, 44, 17);
+    run(w2, 0.05, { interact: true, interactPressed: true });
+    walkTo(w2, 61, 4);
+    expect(w2.player.x / 32).toBeGreaterThan(60);
+    expect(w2.player.health).toBe(w2.player.maxHealth);
+  });
+  it('the shelf relic can be reached within the guard valve’s three seconds', () => {
+    const w = levelWorld('4-7');
+    run(w, 0.5);
+    teleport(w, 10, 17);
+    run(w, 0.05, { interact: true, interactPressed: true });
+    walkTo(w, 9);
+    hopTo(w, 7);
+    hopTo(w, 3);
+    expect(feet(w)).toBeCloseTo(12, 1);
+    expect(w.player.health).toBe(w.player.maxHealth);
+  });
+});
