@@ -143,6 +143,7 @@ export const EN: Record<string, string> = {
   'hint.phaseCloud': 'Some clouds come and go in a rhythm. Wait for the next one to form.',
   'hint.gustSail': 'The fan blows in bursts; the sail slips back between them. Stay aboard.',
   'hint.ward': 'Ward gates open only when every guardian they bind has fallen.',
+  'hint.timedRing': 'This ring switch springs back — cross before the ring turns upright again.',
   'hint.wind': 'Wind pushes you and anything light.',
   'hint.fallingIce': 'Icicles fall when disturbed. Keep moving.',
   'hint.blizzard': 'Gusts come in waves. Shelter behind walls between them.',

@@ -234,3 +234,34 @@ describe('6-5 Light Beams', () => {
     expect(w.getEntity('bridge_hidden')?.solidKind()).toBe('top');
   });
 });
+
+describe('6-6 Rotating Rings', () => {
+  const press = (w: W): void => { run(w, 0.05, { interact: true, interactPressed: true }); };
+  it('ring switches lay the rings flat, stand them upright, and the timed ring must be crossed quickly', () => {
+    const w = levelWorld('6-6');
+    w.invulnerable = true;
+    run(w, 0.5);
+    walkTo(w, 9); press(w); run(w, 1.5);
+    walkTo(w, 13); hopTo(w, 16.5); hopTo(w, 21.5); hopTo(w, 27);
+    expect(feet(w)).toBeCloseTo(15, 0);
+    walkTo(w, 29); press(w); run(w, 1.5);
+    walkTo(w, 31); hopTo(w, 34); hopTo(w, 34); hopTo(w, 39);
+    expect(feet(w)).toBeCloseTo(7, 0);
+    walkTo(w, 42); press(w); run(w, 1.2);
+    walkTo(w, 46); hopTo(w, 49.5); hopTo(w, 54.5); hopTo(w, 59);
+    walkTo(w, 74);
+    expect(w.player.state).toBe('VICTORY');
+    expect(w.stats.deaths).toBe(0);
+  });
+  it('the timed ring turns upright again when its switch springs back', () => {
+    const w = levelWorld('6-6');
+    run(w, 0.5);
+    const ys = (): number[] => w.entities.filter((e) => e.id.startsWith('ring_3')).map((e) => Math.round(e.y / 32));
+    expect(new Set(ys()).size).toBe(2);
+    w.getEntity('ring_sw_3')!.interact(w);
+    run(w, 1.5);
+    expect(new Set(ys()).size).toBe(1);
+    run(w, 6);
+    expect(new Set(ys()).size).toBe(2);
+  });
+});
