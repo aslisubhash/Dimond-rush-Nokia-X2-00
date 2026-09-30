@@ -87,11 +87,18 @@ export class Enemy extends Entity {
     return this.fsm.state;
   }
 
+  override init(world: WorldApi): void {
+    super.init(world);
+    this.active = this.alive;
+  }
+
   get alive(): boolean {
     return !this.removed && this.fsm.state !== 'DEAD';
   }
 
   override update(world: WorldApi, dt: number): void {
+    // Signal: an enemy is "active" while alive (ward gates open when their guardians fall).
+    this.active = this.alive;
     if (this.removed || this.dormant) return;
     this.world = world;
     this.dt = dt;

@@ -15,6 +15,7 @@ export class Gate extends Entity {
   invert: boolean;
   speed: number;
   locked: boolean;
+  latched = false;
   constructor(def: EntityDef) {
     super(def);
     this.invert = this.bool('invert', false);
@@ -38,7 +39,8 @@ export class Gate extends Entity {
     if (this.locked && this.type === 'locked_door' && !this.requires.length) return;
     const open = this.invert ? !powered : powered;
     // Latching doors stay open once their condition was met.
-    if (!open && this.bool('latch', false) && this.targetOpen === 1) return;
+    if (!open && this.latched) return;
+    if (open && this.bool('latch', false) && world.time > 0) this.latched = true;
     this.setOpen(world, open);
   }
 

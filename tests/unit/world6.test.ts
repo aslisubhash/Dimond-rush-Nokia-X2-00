@@ -151,3 +151,48 @@ describe('6-3 Wind Platforms', () => {
     expect(w.getEntity('sd_vault')?.solidKind()).toBeNull();
   });
 });
+
+describe('6-4 Sky Guardians', () => {
+  const kill = (w: W, id: string): void => {
+    const e = w.getEntity(id) as unknown as { crush: (x: unknown) => void };
+    e.crush(w);
+    run(w, 0.8);
+  };
+  it('a ward gate opens only once every guardian it binds has fallen', () => {
+    const w = levelWorld('6-4');
+    run(w, 1);
+    expect(w.getEntity('ward_1')?.solidKind()).toBe('full');
+    kill(w, 'guard_a');
+    run(w, 1);
+    expect(w.getEntity('ward_1')?.solidKind()).toBe('full');
+    kill(w, 'guard_b');
+    run(w, 2);
+    expect(w.getEntity('ward_1')?.solidKind()).toBeNull();
+  });
+  it('the second ward needs the whole mixed squad defeated', () => {
+    const w = levelWorld('6-4');
+    run(w, 1);
+    kill(w, 'guard_c');
+    kill(w, 'guard_d');
+    run(w, 1);
+    expect(w.getEntity('ward_2')?.solidKind()).toBe('full');
+    kill(w, 'guard_e');
+    run(w, 2);
+    expect(w.getEntity('ward_2')?.solidKind()).toBeNull();
+  });
+  it('knights take several sword hits', () => {
+    const w = levelWorld('6-4');
+    w.invulnerable = true;
+    run(w, 0.5);
+    const knight = w.getEntity('guard_a') as unknown as { alive: boolean; x: number };
+    let swings = 0;
+    for (; swings < 12 && knight.alive; swings++) {
+      w.player.x = knight.x - w.player.w - 6;
+      w.player.facing = 1;
+      run(w, 1 / 120, { attackPressed: true });
+      run(w, 0.5);
+    }
+    expect(knight.alive).toBe(false);
+    expect(swings).toBeGreaterThanOrEqual(3);
+  });
+});
