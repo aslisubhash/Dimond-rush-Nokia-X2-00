@@ -55,3 +55,61 @@ describe('6-1 Floating Islands', () => {
     expect(w.player.x / 32).toBeLessThan(46.5);
   });
 });
+
+describe('6-2 Cloud Passage', () => {
+  const solid = (w: W, id: string): boolean => w.getEntity(id)?.solidKind() === 'top';
+  it('phase clouds are crossed by waiting for the next to form', () => {
+    const w = levelWorld('6-2');
+    w.invulnerable = true;
+    run(w, 0.5);
+    walkTo(w, 10);
+    until(w, () => !solid(w, 'phase_a1'));
+    until(w, () => solid(w, 'phase_a1'));
+    walkTo(w, 18, 1.5);
+    hopTo(w, 21);
+    until(w, () => !solid(w, 'phase_a2'));
+    until(w, () => solid(w, 'phase_a2'));
+    hopTo(w, 25);
+    walkTo(w, 33, 1.5);
+    expect(feet(w)).toBeCloseTo(17, 0);
+    expect(w.player.x / 32).toBeGreaterThan(32);
+    expect(w.stats.deaths).toBe(0);
+  });
+  it('dissolving clouds, the updraft and the chasing phase clouds reach the exit', () => {
+    const w = levelWorld('6-2');
+    w.invulnerable = true;
+    run(w, 0.5);
+    teleport(w, 40, 16);
+    hopTo(w, 45);
+    walkTo(w, 51, 1.2);
+    hopTo(w, 56);
+    walkTo(w, 62, 1.5);
+    run(w, 3);
+    run(w, 1, { right: true });
+    expect(feet(w)).toBeCloseTo(11, 0);
+    walkTo(w, 74);
+    until(w, () => !solid(w, 'phase_c1'));
+    until(w, () => solid(w, 'phase_c1'));
+    hopTo(w, 78);
+    walkTo(w, 81, 1);
+    until(w, () => solid(w, 'phase_c2'));
+    hopTo(w, 85);
+    walkTo(w, 88, 1);
+    hopTo(w, 92);
+    walkTo(w, 104);
+    expect(w.player.state).toBe('VICTORY');
+  });
+  it('the fleeting stair can be climbed in one window', () => {
+    const w = levelWorld('6-2');
+    w.invulnerable = true;
+    run(w, 0.5);
+    teleport(w, 57, 15);
+    until(w, () => !solid(w, 'stair_1'));
+    until(w, () => solid(w, 'stair_1'));
+    hopTo(w, 56.5);
+    hopTo(w, 53.5);
+    hopTo(w, 50.5);
+    hopTo(w, 47);
+    expect(feet(w)).toBeCloseTo(5, 0);
+  });
+});
