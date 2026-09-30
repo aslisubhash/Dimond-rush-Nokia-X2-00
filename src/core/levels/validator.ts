@@ -33,7 +33,7 @@ interface Grid {
   deadly: Uint8Array;
 }
 
-function buildGrid(c: CompiledLevel, defs: EntityDef[], openSecrets: boolean): Grid {
+export function buildGrid(c: CompiledLevel, defs: EntityDef[], openSecrets: boolean): Grid {
   const { cols, rows } = c;
   const n = cols * rows;
   const g: Grid = { cols, rows, solid: new Uint8Array(n), support: new Uint8Array(n), climb: new Uint8Array(n), water: new Uint8Array(n), deadly: new Uint8Array(n) };
@@ -160,7 +160,7 @@ function buildGrid(c: CompiledLevel, defs: EntityDef[], openSecrets: boolean): G
 }
 
 /** Breadth-first search over body positions (x = column, y = row of the body's lower cell). */
-function reachable(g: Grid, sx: number, sy: number): Uint8Array {
+export function reachable(g: Grid, sx: number, sy: number): Uint8Array {
   const { cols, rows } = g;
   const idx = (x: number, y: number): number => y * cols + x;
   const inb = (x: number, y: number): boolean => x >= 0 && x < cols && y >= -4 && y < rows;
