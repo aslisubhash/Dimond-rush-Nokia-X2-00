@@ -138,6 +138,7 @@ export const EN: Record<string, string> = {
   'hint.icicleHammer': 'Falling ice shatters ice. Find what holds the great icicle.',
   'hint.iceLift': 'Ice lifts are slippery — stand still while they move.',
   'hint.windFire': 'Gusts blow out exposed flames. Rocks give shelter.',
+  'hint.greatIcicle': 'Great icicles hang above the perches. The switches on the ledges shake them loose.',
   'hint.wind': 'Wind pushes you and anything light.',
   'hint.fallingIce': 'Icicles fall when disturbed. Keep moving.',
   'hint.blizzard': 'Gusts come in waves. Shelter behind walls between them.',

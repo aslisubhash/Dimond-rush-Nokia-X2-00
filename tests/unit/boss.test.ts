@@ -244,3 +244,51 @@ describe('4-8 Fire Dragon', () => {
     expect(w.stats.deaths).toBeGreaterThan(0);
   });
 });
+
+describe('5-8 Ice Dragon', () => {
+  const strike = (w: ReturnType<typeof levelWorld>, boss: Boss): void => {
+    // Wait until the stunned dragon has crashed to the ground.
+    for (let i = 0; i < 180 && boss.brain.weakPoint(boss)!.y < 23 * 32 - 90; i++) run(w, 1 / 60, {});
+    const wp = boss.brain.weakPoint(boss)!;
+    const fromLeft = (boss.brain.pose['facing'] ?? -1) < 0;
+    w.player.x = fromLeft ? wp.x - w.player.w - 4 : wp.x + wp.w + 4;
+    w.player.y = 23 * 32 - w.player.h;
+    w.player.facing = fromLeft ? 1 : -1;
+    run(w, 0.1, {});
+    run(w, 1 / 120, { attackPressed: true });
+    run(w, 0.6, {});
+  };
+  it('is grounded by the great icicle above its perch and struck on the head', () => {
+    const w = levelWorld('5-8');
+    w.invulnerable = true;
+    const boss = w.boss as Boss;
+    teleport(w, 21, 22);
+    run(w, 3.5, {});
+    expect(boss.state).toBe('fight');
+    const drop = (sw: string): void => {
+      teleport(w, 36, 16);
+      w.getEntity(sw)!.interact(w);
+      for (let i = 0; i < 240 && boss.stun <= 0; i++) run(w, 1 / 120, {});
+    };
+    drop('sw_a');
+    expect(boss.stun).toBeGreaterThan(0);
+    strike(w, boss);
+    expect(boss.phase?.id).toBe('perch_b');
+    run(w, 2.5, {});
+    drop('sw_a');
+    expect(boss.stun).toBe(0); // wrong perch: the icicle misses
+    run(w, 3.5, {});
+    drop('sw_b');
+    expect(boss.stun).toBeGreaterThan(0);
+    strike(w, boss);
+    expect(boss.phase?.id).toBe('storm');
+    for (let k = 0; k < 4 && boss.state === 'fight'; k++) {
+      run(w, 3.5, {});
+      drop('sw_a');
+      strike(w, boss);
+    }
+    run(w, 4.5, {});
+    expect(boss.state).toBe('dead');
+    expect(w.getEntity('chest_seal')?.powered).toBe(true);
+  });
+});
