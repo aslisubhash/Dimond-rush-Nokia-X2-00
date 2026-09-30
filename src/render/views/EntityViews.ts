@@ -563,13 +563,26 @@ class ReceiverView extends View<LightReceiver> {
 
 class MagnetView extends View<Magnet> {
   private s: Phaser.GameObjects.Sprite;
+  /** Top of the chain for hanging magnets (first solid tile above), or null. */
+  private chainTop: number | null = null;
   constructor(r: RenderContext, e: Magnet) {
     super(r, e);
     const ang = e.dirX > 0 ? 0 : e.dirX < 0 ? 180 : e.dirY > 0 ? 90 : 270;
     this.s = r.scene.add.sprite(e.cx, e.cy, 'magnet', 0).setDepth(DEPTH.OBJECTS).setAngle(ang);
+    if (e.bool('hanging', false)) {
+      const tx = Math.floor(e.cx / TILE);
+      let ty = Math.floor(e.y / TILE) - 1;
+      while (ty > 0 && !r.world.map.isSolid(tx, ty)) ty--;
+      this.chainTop = (ty + 1) * TILE;
+    }
   }
   sync(time: number): void {
     const e = this.e;
+    const m0 = this.r.mech;
+    if (this.chainTop !== null) {
+      m0.lineStyle(2, 0x6d6a78, 1);
+      for (let y = this.chainTop; y < e.y + 4; y += 8) m0.strokeRect(e.cx - 2, y, 4, 6);
+    }
     this.s.setFrame(e.attract ? 0 : 1).setAlpha(e.enabled ? 1 : 0.6);
     if (!e.enabled) return;
     const m = this.r.mech;

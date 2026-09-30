@@ -156,6 +156,19 @@ export function buildGrid(c: CompiledLevel, defs: EntityDef[], openSecrets: bool
       }
     }
   }
+  // Vertical magnets lift (or lower) magnet stones in their column: every row between is a step.
+  for (const m of defs) {
+    if (m.type !== 'magnet') continue;
+    const dir = m.props['dir'];
+    if (dir !== 'down' && dir !== 'up') continue;
+    const range = typeof m.props['range'] === 'number' ? m.props['range'] : 8;
+    for (const s of defs) {
+      if (s.type !== 'magnet_stone' || s.tx !== m.tx) continue;
+      const dy = s.ty - m.ty;
+      if (Math.sign(dy) !== (dir === 'down' ? 1 : -1) || Math.abs(dy) > range) continue;
+      for (let ty = Math.min(s.ty, m.ty); ty <= Math.max(s.ty, m.ty); ty++) set(g.support, s.tx, ty);
+    }
+  }
   return g;
 }
 

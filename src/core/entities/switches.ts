@@ -191,7 +191,8 @@ export class CrystalNode extends Entity {
     if (this.active) return;
     this.active = true;
     world.fire('CRYSTAL_ACTIVATED', this.id);
-    world.emit({ kind: 'sound', id: 'crystal_chime', x: this.cx, y: this.cy, volume: 0.9 });
+    const pitch = this.props['pitch'];
+    world.emit({ kind: 'sound', id: typeof pitch === 'number' ? `chime_${pitch}` : 'crystal_chime', x: this.cx, y: this.cy, volume: 0.9 });
     world.emit({ kind: 'particles', preset: 'crystal_pickup', x: this.cx, y: this.cy, count: 14, color: this.num('color', 0xb65cff) });
   }
   deactivate(world: WorldApi): void {
