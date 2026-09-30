@@ -238,3 +238,45 @@ describe('4-5 Heat Maze', () => {
     expect(w.player.state).toBe('VICTORY');
   });
 });
+
+describe('4-6 Rising Lava', () => {
+  const climb = (w: W): void => {
+    walkTo(w, 11); hopTo(w, 13);
+    walkTo(w, 18); hopTo(w, 20);
+    walkTo(w, 24); hopTo(w, 27);
+    walkTo(w, 31); climbTo(w, 50);
+    walkTo(w, 22); hopTo(w, 19);
+    walkTo(w, 14); hopTo(w, 11);
+    walkTo(w, 6); hopTo(w, 4);
+    hopTo(w, 6); walkTo(w, 20); hopTo(w, 23);
+    walkTo(w, 27);
+    const lift = w.getEntity('tower_lift') as unknown as { y: number; pause: number };
+    until(w, () => lift.y / 32 > 33.9 && lift.pause > 0.9);
+    hopTo(w, 30);
+    until(w, () => lift.y / 32 < 24.05);
+    hopTo(w, 25);
+    walkTo(w, 8); climbTo(w, 14);
+    walkTo(w, 14); hopTo(w, 17);
+    walkTo(w, 22); hopTo(w, 25);
+    walkTo(w, 31, 3);
+  };
+  it('the tower can be climbed ahead of the magma', () => {
+    const w = levelWorld('4-6');
+    w.invulnerable = true; // enemies aside, the magma must never catch a steady climb
+    run(w, 0.5);
+    climb(w);
+    expect(w.player.state).toBe('VICTORY');
+    expect(w.stats.deaths).toBe(0);
+  });
+  it('the magma starts rising once the climb begins and catches anyone who waits', () => {
+    const w = levelWorld('4-6');
+    run(w, 0.5);
+    const magma = w.getEntity('magma') as unknown as { surfaceY: number };
+    const y0 = magma.surfaceY;
+    run(w, 3);
+    expect(magma.surfaceY).toBe(y0);
+    teleport(w, 30, 58);
+    run(w, 20);
+    expect(w.stats.deaths).toBeGreaterThan(0);
+  });
+});
