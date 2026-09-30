@@ -113,3 +113,41 @@ describe('6-2 Cloud Passage', () => {
     expect(feet(w)).toBeCloseTo(5, 0);
   });
 });
+
+describe('6-3 Wind Platforms', () => {
+  it('fan-driven sails carry Arin from island to island', () => {
+    const w = levelWorld('6-3');
+    w.invulnerable = true;
+    run(w, 0.5);
+    const e = (id: string) => w.getEntity(id)!;
+    walkTo(w, 13, 3);
+    until(w, () => e('sail_a').x / 32 > 25.9);
+    hopTo(w, 31);
+    expect(feet(w)).toBeCloseTo(17, 0);
+    walkTo(w, 40);
+    until(w, () => e('sail_b').y / 32 < 10.1);
+    hopTo(w, 45);
+    expect(feet(w)).toBeCloseTo(10, 0);
+    walkTo(w, 54);
+    hopTo(w, 57);
+    until(w, () => e('sail_c').x / 32 > 69.9, 6);
+    hopTo(w, 75);
+    expect(feet(w)).toBeCloseTo(11, 0);
+    walkTo(w, 84);
+    hopTo(w, 87);
+    until(w, () => e('sail_d').x / 32 > 94.8, 20);
+    hopTo(w, 100);
+    walkTo(w, 112);
+    expect(w.player.state).toBe('VICTORY');
+  });
+  it('the constellation order carved on the vault opens it', () => {
+    const w = levelWorld('6-3');
+    run(w, 0.5);
+    for (const id of ['star_eye', 'star_sun', 'star_bird']) { w.getEntity(id)!.interact(w); run(w, 0.1); }
+    run(w, 1);
+    expect(w.getEntity('sd_vault')?.solidKind()).toBe('full');
+    for (const id of ['star_sun', 'star_bird', 'star_eye']) { w.getEntity(id)!.interact(w); run(w, 0.1); }
+    run(w, 2);
+    expect(w.getEntity('sd_vault')?.solidKind()).toBeNull();
+  });
+});

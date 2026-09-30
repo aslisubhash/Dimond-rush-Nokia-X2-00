@@ -90,12 +90,13 @@ export class WindSource extends Entity {
   override update(world: WorldApi, dt: number): void {
     const period = this.num('period', 0);
     let on: boolean;
-    if (this.requires.length) on = this.bool('invert', false) ? !this.powered : this.powered;
-    else if (period > 0) {
+    on = this.requires.length ? (this.bool('invert', false) ? !this.powered : this.powered) : true;
+    if (on && period > 0) {
+      // Gusting: blows only during the `on` part of each period (also when powered).
       const t = (((world.time + this.num('offset', 0)) % period) + period) % period;
       on = t < this.num('on', period / 2);
       this.props['warn'] = !on && t > period - 0.8;
-    } else on = true;
+    }
     if (on && !this.active) {
       world.fire('WIND_ENABLED', this.id);
       world.emit({ kind: 'sound', id: 'wind_gust', x: this.cx, y: this.cy, volume: 0.7 });
