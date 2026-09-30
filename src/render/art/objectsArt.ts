@@ -175,6 +175,17 @@ export function objectAssets(): ArtAsset[] {
       px.disc(tx, 3, 2, i ? '#ffd35a' : '#d84a3a');
     }, { outline: OL }),
   );
+  out.push(
+    // Cooling valve: a pipe stub with a hand wheel; frame 1 is turned (spokes diagonal, coolant glow).
+    sheet('valve', 32, 32, 2, (px, i) => {
+      px.r(6, 10, 4, 6, '#5a5560').v(6, 10, 6, '#8a8494').r(4, 14, 8, 2, '#4a4450');
+      px.disc(8, 7, 5, '#3a3440').disc(8, 7, 4, i ? '#4dd6ff' : '#b8321a').disc(8, 7, 3, '#3a3440');
+      const c = i ? '#b8f4ff' : '#ff9a5a';
+      if (i) px.line(5, 4, 11, 10, c).line(11, 4, 5, 10, c);
+      else px.h(4, 7, 9, c).v(8, 3, 9, c);
+      px.disc(8, 7, 1, '#d8d4dc');
+    }, { outline: OL }),
+  );
   for (const glyph of ['ankh', 'eye', 'sun', 'bird']) {
     out.push(
       sheet(`glyph_${glyph}`, 32, 32, 2, (px, i) => {

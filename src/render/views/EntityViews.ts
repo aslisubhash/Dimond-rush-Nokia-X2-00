@@ -129,7 +129,7 @@ class SwitchView extends View<Switch> {
   constructor(r: RenderContext, e: Switch) {
     super(r, e);
     const glyph = e.str('glyph', '');
-    const key = glyph ? `glyph_${glyph}` : e.type === 'lever' ? 'lever' : 'switch';
+    const key = glyph === 'valve' ? 'valve' : glyph ? `glyph_${glyph}` : e.type === 'lever' ? 'lever' : 'switch';
     this.s = r.scene.add.sprite(e.cx, e.cy, key, 0).setDepth(DEPTH.OBJECTS);
     this.ring = r.scene.add.graphics().setDepth(DEPTH.OBJECTS + 1);
   }

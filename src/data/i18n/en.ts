@@ -119,6 +119,7 @@ export const EN: Record<string, string> = {
   'hint.fallingPlatform': 'Cracked platforms drop soon after you land. Keep moving.',
   'hint.movingPlatform': 'Ride moving platforms — wait for them to come to you.',
   'hint.lever': 'Levers stay where you set them. Pull again to reverse.',
+  'hint.valve': 'Turn cooling valves to drain the lava.',
   'hint.fireJet': 'Fire shafts warn with sparks before they erupt.',
   'hint.heat': 'Braziers melt ice. Heat changes frozen things.',
   'hint.risingLava': 'The magma is rising. Climb!',

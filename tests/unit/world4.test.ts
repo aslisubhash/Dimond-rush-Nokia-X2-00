@@ -101,3 +101,40 @@ describe('4-2 Moving Platforms', () => {
     expect(w.player.x / 32).toBeLessThan(82);
   });
 });
+
+describe('4-3 Lava Flow', () => {
+  it('the first valve drains pool 1, opening the tunnel and the key vault', () => {
+    const w = levelWorld('4-3');
+    w.invulnerable = true; // route check only (the fire bat harasses the pool)
+    run(w, 0.5);
+    expect(w.getEntity('gate_tunnel')?.solidKind()).toBe('full');
+    teleport(w, 7, 13);
+    run(w, 0.05, { interact: true, interactPressed: true });
+    run(w, 5);
+    expect((w.getEntity('pool_1') as unknown as { surfaceY: number }).surfaceY).toBeGreaterThanOrEqual(20 * 32 - 1);
+    expect(w.getEntity('gate_tunnel')?.solidKind()).toBeNull();
+    // Drop into the dry pool and walk left into the vault.
+    teleport(w, 11, 19);
+    run(w, 1.5, { left: true });
+    expect(w.player.x / 32).toBeLessThan(8);
+    expect(w.stats.deaths).toBe(0);
+    // Then right through the tunnel into cave B.
+    run(w, 9, { right: true });
+    expect(w.player.x / 32).toBeGreaterThan(41);
+    expect(w.stats.deaths).toBe(0);
+  });
+  it('the second valve empties the pit so it can be walked and climbed out of', () => {
+    const w = levelWorld('4-3');
+    w.invulnerable = true;
+    run(w, 0.5);
+    teleport(w, 54, 19);
+    run(w, 0.05, { interact: true, interactPressed: true });
+    run(w, 3);
+    run(w, 3, { right: true });
+    run(w, 4, { up: true, right: true });
+    run(w, 1, { right: true });
+    expect(feet(w)).toBeCloseTo(16, 0);
+    expect(w.player.x / 32).toBeGreaterThan(70);
+    expect(w.stats.deaths).toBe(0);
+  });
+});
