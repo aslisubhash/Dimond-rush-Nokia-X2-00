@@ -58,6 +58,7 @@ export const L2_3: LevelSpec = {
       reward: 'temple_key_2',
       room: [60, 20, 6, 3],
       difficulty: 2,
+      cover: true,
     },
   ],
   hints: [

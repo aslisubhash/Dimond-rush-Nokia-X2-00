@@ -129,6 +129,7 @@ export const EN: Record<string, string> = {
   'hint.risingLava': 'The magma is rising. Climb!',
   'hint.ice': 'Ice is slippery — start braking early.',
   'hint.thinIce': 'Thin ice cracks under your weight.',
+  'hint.iceBlock': 'Ice blocks slide until something stops them.',
   'hint.wind': 'Wind pushes you and anything light.',
   'hint.fallingIce': 'Icicles fall when disturbed. Keep moving.',
   'hint.blizzard': 'Gusts come in waves. Shelter behind walls between them.',

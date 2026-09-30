@@ -62,6 +62,7 @@ export const L3_2: LevelSpec = {
       reward: 'crystal_cellar',
       room: [70, 26, 11, 2],
       difficulty: 2,
+      cover: true,
     },
   ],
   hints: [

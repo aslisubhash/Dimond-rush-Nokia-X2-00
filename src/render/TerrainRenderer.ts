@@ -20,6 +20,9 @@ export class TerrainRenderer {
   private readonly seed: number;
   readonly lights: { x: number; y: number; r: number; color: number }[] = [];
   private deco: Phaser.GameObjects.GameObject[] = [];
+  /** Rock drawn over enclosed secret rooms until they are discovered. */
+  private covers: { zoneId: string; tiles: Phaser.Tilemaps.Tile[]; alpha: number }[] = [];
+  private coverLayer: Phaser.Tilemaps.TilemapLayer | null = null;
 
   constructor(
     private scene: Phaser.Scene,
@@ -37,6 +40,57 @@ export class TerrainRenderer {
     this.buildBack();
     this.refresh();
     this.placeDecorations();
+    this.buildCovers(ts);
+  }
+
+  private buildCovers(ts: Phaser.Tilemaps.Tileset): void {
+    const secrets = this.world.level.spec.secrets.filter((s) => s.cover ?? this.enclosed(s.room));
+    if (!secrets.length) return;
+    this.coverLayer = this.tilemap.createBlankLayer('cover', ts) as Phaser.Tilemaps.TilemapLayer;
+    this.coverLayer.setDepth(DEPTH.FOREGROUND);
+    for (const s of secrets) {
+      const [rx, ry, rw, rh] = s.room;
+      const tiles: Phaser.Tilemaps.Tile[] = [];
+      for (let y = ry; y < ry + rh; y++) {
+        for (let x = rx; x < rx + rw; x++) {
+          const base = hash2(x, y, this.seed) > 0.5 ? TI.terrainA : TI.terrainB;
+          const t = this.coverLayer.putTileAt(base, x, y);
+          if (t) tiles.push(t);
+        }
+      }
+      this.covers.push({ zoneId: `zone_${s.id}`, tiles, alpha: 1 });
+    }
+  }
+
+  /** A room is enclosed when every cell around it is rock, a secret wall, a door or a ladder shaft. */
+  private enclosed(room: [number, number, number, number]): boolean {
+    const [rx, ry, rw, rh] = room;
+    const map = this.world.map;
+    const doorAt = (x: number, y: number): boolean =>
+      this.world.entities.some((e) => (e.type === 'secret_door' || e.type === 'gate' || e.type === 'locked_door' || e.type === 'temple_door') && x * TILE >= e.x && x * TILE < e.x + e.w && y * TILE >= e.y && y * TILE < e.y + e.h);
+    for (let y = ry - 1; y <= ry + rh; y++) {
+      for (let x = rx - 1; x <= rx + rw; x++) {
+        const inside = x >= rx && x < rx + rw && y >= ry && y < ry + rh;
+        if (inside) continue;
+        const t = map.get(x, y);
+        if (SOLIDISH.has(t) || t === Tile.Ladder || t === Tile.OneWay) continue;
+        if (doorAt(x, y)) continue;
+        // Diagonal corners never let the view in.
+        if ((x === rx - 1 || x === rx + rw) && (y === ry - 1 || y === ry + rh)) continue;
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /** Fade secret-room covers once their zone has been entered. */
+  updateCovers(dt: number): void {
+    for (const c of this.covers) {
+      if (c.alpha <= 0) continue;
+      if (!this.world.getEntity(c.zoneId)?.active) continue;
+      c.alpha = Math.max(0, c.alpha - dt * 2.5);
+      for (const t of c.tiles) t.alpha = c.alpha;
+    }
   }
 
   private solidish(tx: number, ty: number): boolean {

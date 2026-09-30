@@ -175,6 +175,8 @@ export interface SecretSpec {
   /** Secret zone rectangle in tiles [x, y, w, h]. Entering it marks the secret found. */
   room: [number, number, number, number];
   difficulty: 1 | 2 | 3;
+  /** Enclosed room: draw rock over it until the player first enters (hidden from outside view). */
+  cover?: boolean;
 }
 
 export type BossCondition =

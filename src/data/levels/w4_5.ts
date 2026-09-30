@@ -73,8 +73,9 @@ export const L4_5: LevelSpec = {
       discoveryMethod: 'Walk past the stone, push it back into the ladder shaft so it drops onto the plate one floor down, then return to the opened door.',
       requiredMechanic: 'push',
       reward: 'relic_4_5',
-      room: [52, 20, 6, 4],
+      room: [52, 20, 7, 4],
       difficulty: 3,
+      cover: true,
     },
   ],
   hints: [

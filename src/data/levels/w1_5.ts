@@ -60,6 +60,7 @@ export const L1_5: LevelSpec = {
       reward: 'relic_5',
       room: [6, 17, 6, 4],
       difficulty: 2,
+      cover: true,
     },
   ],
   hints: [

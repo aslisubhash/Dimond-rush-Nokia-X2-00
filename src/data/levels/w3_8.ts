@@ -82,6 +82,7 @@ export const L3_8: LevelSpec = {
       reward: 'heart_vessel_3',
       room: [1, 10, 4, 2],
       difficulty: 3,
+      cover: true,
     },
   ],
   hints: [

@@ -98,6 +98,7 @@ export class WorldRenderer {
   update(time: number, dt: number): void {
     const world = this.world;
     this.terrain.refresh();
+    this.terrain.updateCovers(dt);
     this.updateCamera(dt);
     const cam = this.scene.cameras.main;
     this.backdrop.update(cam, dt);
