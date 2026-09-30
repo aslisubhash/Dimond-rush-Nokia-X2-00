@@ -13,7 +13,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "validate-levels": "tsx scripts/validate-levels.ts",
-    "docs:levels": "tsx scripts/gen-level-spec.ts"
+    "docs:levels": "tsx scripts/gen-level-spec.ts",
+    "build:single": "node scripts/build-artifact.mjs"
   },
   "dependencies": {
     "@fontsource/cinzel": "^5.3.0",
