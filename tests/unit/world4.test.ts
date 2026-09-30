@@ -138,3 +138,61 @@ describe('4-3 Lava Flow', () => {
     expect(w.stats.deaths).toBe(0);
   });
 });
+
+describe('4-4 Fire Shafts', () => {
+  const vents = (w: W, y: number): { active: boolean; x: number }[] => w.entities.filter((e) => e.type === 'fire_jet' && Math.floor(e.y / 32) === y) as never;
+  it('the floor vents fire as a wave that can be followed', () => {
+    const w = levelWorld('4-4');
+    run(w, 0.5);
+    teleport(w, 9, 41);
+    // Wait until the first vent has just gone quiet, then walk behind the wave.
+    const first = vents(w, 41).sort((a, b) => a.x - b.x)[0]!;
+    until(w, () => first.active);
+    until(w, () => !first.active);
+    run(w, 3.2, { right: true });
+    expect(w.player.x / 32).toBeGreaterThan(29);
+    expect(w.player.health).toBe(w.player.maxHealth);
+  });
+  it('the shaft can be climbed by pausing on the landings between side bursts', () => {
+    const w = levelWorld('4-4');
+    run(w, 0.5);
+    teleport(w, 46, 41);
+    const side = w.entities.filter((e) => e.type === 'fire_jet' && e.str('dir', '') === 'right').sort((a, b) => b.y - a.y);
+    const climbTo = (row: number): void => {
+      for (let i = 0; i < 600 && feet(w) > row + 0.05; i++) run(w, 1 / 120, { up: true });
+    };
+    const climbPast = (jet: (typeof side)[number], landingRow: number): void => {
+      climbTo(jet.y / 32 + 2.6); // hold on just below the vent
+      until(w, () => jet.active);
+      until(w, () => !jet.active);
+      climbTo(landingRow);
+      run(w, 0.1);
+    };
+    climbPast(side[0]!, 29);
+    climbPast(side[1]!, 21);
+    climbPast(side[2]!, 9);
+    run(w, 0.5, { right: true });
+    expect(feet(w)).toBeCloseTo(9, 0);
+    expect(w.player.health).toBe(w.player.maxHealth);
+  });
+  it('the timed switch silences the last vents long enough to reach the exit', () => {
+    const w = levelWorld('4-4');
+    run(w, 0.5);
+    teleport(w, 51, 8);
+    run(w, 0.05, { interact: true, interactPressed: true });
+    run(w, 0.4);
+    run(w, 3.5, { right: true });
+    expect(w.player.state).toBe('VICTORY');
+    expect(w.player.health).toBe(w.player.maxHealth);
+  });
+  it('lighting the braziers in the carved order opens the cache', () => {
+    const w = levelWorld('4-4');
+    run(w, 0.5);
+    for (const id of ['brazier_2', 'brazier_1', 'brazier_3']) {
+      w.getEntity(id)!.interact(w);
+      run(w, 0.1);
+    }
+    run(w, 2);
+    expect(w.getEntity('sd_cache')?.solidKind()).toBeNull();
+  });
+});
