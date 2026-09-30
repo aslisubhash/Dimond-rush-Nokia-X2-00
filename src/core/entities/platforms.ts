@@ -58,6 +58,8 @@ export class MovingPlatform extends MovingSolid {
   mode: string;
   drive: string;
   target = 0;
+  /** Seconds to wait after a toggle before departing (lets the player step aboard). */
+  departIn = 0;
 
   constructor(def: EntityDef) {
     super(def);
@@ -102,6 +104,7 @@ export class MovingPlatform extends MovingSolid {
   override onPowerChanged(world: WorldApi, powered: boolean): void {
     if (this.drive === 'toggle') {
       this.target = powered ? this.total : 0;
+      if (powered) this.departIn = this.num('departDelay', 0);
       world.emit({ kind: 'sound', id: 'platform_start', x: this.cx, y: this.cy });
     }
   }
@@ -147,7 +150,8 @@ export class MovingPlatform extends MovingSolid {
         }
       }
     } else if (this.drive === 'toggle') {
-      ns = approach(ns, this.target, this.speed * dt);
+      if (this.departIn > 0) this.departIn -= dt;
+      else ns = approach(ns, this.target, this.speed * dt);
     } else if (this.drive === 'wind') {
       const push = this.windPush(world);
       ns = push > 50 ? approach(ns, this.total, this.speed * dt) : approach(ns, 0, this.speed * 0.5 * dt);

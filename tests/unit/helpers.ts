@@ -81,3 +81,26 @@ export function jump(world: GameWorld, dir: -1 | 0 | 1, hold = 0.5, after = 0.6)
   run(world, hold, { ...h, jump: true });
   run(world, after, h);
 }
+
+/**
+ * Jump towards tile column `tx` (centre), steering until the player's centre reaches it,
+ * then drift down until grounded (or `maxTime` runs out).
+ */
+export function hopTo(world: GameWorld, tx: number, hold = 0.3, maxTime = 1.5): void {
+  const p = world.player;
+  const target = tx * 32 + 16;
+  const steer = (): Partial<InputState> => {
+    const cx = p.x + p.w / 2;
+    if (cx < target - 4) return { right: true };
+    if (cx > target + 4) return { left: true };
+    return {};
+  };
+  run(world, 1 / 120, { ...steer(), jump: true, jumpPressed: true });
+  const steps = Math.round(maxTime * SIM_HZ);
+  for (let i = 0; i < steps; i++) {
+    const inp = input({ ...steer(), jump: i < hold * SIM_HZ });
+    world.step(inp);
+    if (i > 10 && p.grounded) break;
+  }
+  run(world, 0.05);
+}
