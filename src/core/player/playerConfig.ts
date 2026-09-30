@@ -24,6 +24,8 @@ export const PLAYER = {
   swimStroke: 300,
   swimMaxSink: 130,
   swimExitJump: 640,
+  /** Steady rise speed inside a strong updraft. */
+  updraftSpeed: 230,
   pushSpeed: 95,
   pullSpeed: 80,
   attackTime: 0.26,

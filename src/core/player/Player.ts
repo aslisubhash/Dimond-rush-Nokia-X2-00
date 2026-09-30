@@ -196,9 +196,20 @@ export class Player implements PlayerView {
     if (!this.dead && this.fsm.state !== 'CLIMB') {
       const wind = w.windAt(this.x + this.w / 2, this.y + this.h / 2);
       this.windX = wind.ax;
-      if (!this.grounded && (wind.ax || wind.ay)) {
+      if (!this.grounded && wind.ay < -PLAYER.gravity) {
+        // Updraft: cancel gravity and ease toward a steady climb so Arin bobs at the top.
+        this.vx += wind.ax * dt;
+        this.vy += -PLAYER.gravity * PLAYER.fallGravityMul * dt + (-PLAYER.updraftSpeed - this.vy) * Math.min(1, 5 * dt);
+      } else if (!this.grounded && (wind.ax || wind.ay)) {
         this.vx += wind.ax * dt;
         this.vy += wind.ay * dt;
+      } else if (this.grounded && wind.ay < -PLAYER.gravity && !this.input.down) {
+        // A strong updraft lifts Arin off the ground (hold down to resist).
+        this.grounded = false;
+        this.groundRef = null;
+        this.vy = Math.min(this.vy, -140);
+        this.coyote = 0;
+        this.fsm.change('FALL');
       }
     }
 
@@ -280,7 +291,9 @@ export class Player implements PlayerView {
     if (fsm.state === 'PULL') maxSpeed = PLAYER.pullSpeed;
     const accel = PLAYER.groundAccel * this.groundFriction;
     const decel = PLAYER.groundDecel * this.groundFriction;
-    const drift = clamp(this.windX * 0.11, -190, 190);
+    // A sail shelters whoever rides it (it catches the wind instead).
+    const sheltered = !!this.groundRef && (this.groundRef as { type?: string }).type === 'wind_platform';
+    const drift = sheltered ? 0 : clamp(this.windX * 0.11, -190, 190);
     if (dir !== 0 || drift !== 0) {
       const target = dir * maxSpeed + drift;
       const turning = Math.sign(this.vx) !== Math.sign(target) && this.vx !== 0;

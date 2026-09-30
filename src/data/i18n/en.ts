@@ -133,6 +133,8 @@ export const EN: Record<string, string> = {
   'hint.stopper': 'Both plates must be held. A stone stays where you push it.',
   'hint.coldWater': 'The lake is freezing — every moment in the water hurts. Keep to the ice.',
   'hint.dam': 'The dam controls the lake.',
+  'hint.updraft': 'Step into the updraft and let it lift you. Hold away from the spikes.',
+  'hint.sail': 'Step onto the sail — the fan wakes when it feels your weight.',
   'hint.wind': 'Wind pushes you and anything light.',
   'hint.fallingIce': 'Icicles fall when disturbed. Keep moving.',
   'hint.blizzard': 'Gusts come in waves. Shelter behind walls between them.',

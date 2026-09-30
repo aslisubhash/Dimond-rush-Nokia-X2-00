@@ -112,6 +112,10 @@ export function buildGrid(c: CompiledLevel, defs: EntityDef[], openSecrets: bool
         }
         break;
       }
+      case 'wind_source':
+        // A strong updraft carries the player like a ladder.
+        if (p['dir'] === 'up' && (typeof p['strength'] === 'number' ? p['strength'] : 1400) > 2100 && !e.requires.length) cellsOf(e, (x, y) => set(g.climb, x, y));
+        break;
       case 'shifting_sand':
         for (let ty = e.ty; ty < e.ty + e.h / TILE; ty++) for (let tx = e.tx; tx < e.tx + e.w / TILE; tx++) set(g.support, tx, ty);
         break;

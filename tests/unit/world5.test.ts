@@ -163,3 +163,63 @@ describe('5-3 Frozen Lake', () => {
     expect(feet(w)).toBeCloseTo(10, 0);
   });
 });
+
+describe('5-4 Wind Cavern', () => {
+  it('a gust shoves Arin back mid-jump; jumping between gusts clears the pit', () => {
+    const gustOn = (w: W): boolean => !!w.getEntity('gust_a')?.active;
+    const w = levelWorld('5-4');
+    w.invulnerable = true;
+    run(w, 0.5);
+    teleport(w, 21, 31);
+    until(w, () => gustOn(w));
+    until(w, () => (w.getEntity('gust_a') as unknown as { gust: number }).gust >= 1);
+    hopTo(w, 25);
+    expect(w.player.x / 32).toBeLessThan(24);
+    const w2 = levelWorld('5-4');
+    run(w2, 0.5);
+    teleport(w2, 20, 31);
+    until(w2, () => gustOn(w2));
+    until(w2, () => !gustOn(w2));
+    walkTo(w2, 21);
+    hopTo(w2, 25);
+    expect(w2.player.x / 32).toBeGreaterThan(24);
+    expect(w2.player.health).toBe(w2.player.maxHealth);
+  });
+  it('the updraft lifts Arin up the shaft to the upper cavern', () => {
+    const w = levelWorld('5-4');
+    w.invulnerable = true;
+    run(w, 0.5);
+    teleport(w, 39, 31);
+    run(w, 0.4, { right: true });
+    run(w, 3.5);
+    expect(feet(w)).toBeLessThan(11);
+    run(w, 1.5, { right: true });
+    expect(feet(w)).toBeCloseTo(12, 0);
+    expect(w.player.x / 32).toBeGreaterThan(46);
+  });
+  it('hovering at the top of the updraft, the cracked wall can be struck open', () => {
+    const w = levelWorld('5-4');
+    w.invulnerable = true;
+    run(w, 0.5);
+    teleport(w, 42, 31);
+    run(w, 3.5);
+    run(w, 0.3, { left: true });
+    run(w, 1 / 120, { left: true, attackPressed: true });
+    run(w, 0.5, { left: true });
+    expect(w.map.isSolid(40, 9)).toBe(false);
+  });
+  it('stepping onto the sail wakes the fan, which carries Arin across the chasm', () => {
+    const w = levelWorld('5-4');
+    w.invulnerable = true; // the frost bat over the chasm is a separate threat
+    run(w, 0.5);
+    teleport(w, 51, 11);
+    walkTo(w, 54);
+    hopTo(w, 56);
+    const sail = w.getEntity('sail')!;
+    until(w, () => sail.x / 32 > 71.9, 10);
+    expect(feet(w)).toBeCloseTo(11, 0);
+    hopTo(w, 77);
+    expect(feet(w)).toBeCloseTo(12, 0);
+    expect(w.stats.deaths).toBe(0);
+  });
+});
