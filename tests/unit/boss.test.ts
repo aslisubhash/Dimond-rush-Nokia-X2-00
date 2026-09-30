@@ -183,3 +183,64 @@ describe('3-8 Crystal Titan', () => {
     expect(boss.stun).toBeGreaterThan(0);
   });
 });
+
+describe('4-8 Fire Dragon', () => {
+  const strikeHead = (w: ReturnType<typeof levelWorld>, boss: Boss): void => {
+    for (let i = 0; i < 120 && ((boss.brain.pose['grounded'] ?? 0) < 0.95); i++) run(w, 1 / 60, {});
+    const wp = boss.brain.weakPoint(boss)!;
+    const fromLeft = (boss.brain.pose['facing'] ?? -1) < 0;
+    w.player.x = fromLeft ? wp.x - w.player.w - 4 : wp.x + wp.w + 4;
+    w.player.y = 22 * 32 - w.player.h;
+    w.player.facing = fromLeft ? 1 : -1;
+    run(w, 0.15, {});
+    run(w, 1 / 120, { attackPressed: true });
+    run(w, 0.6, {});
+  };
+  it('is grounded by opening both cooling valves during each flood and then struck', () => {
+    const w = levelWorld('4-8');
+    w.invulnerable = true;
+    const boss = w.boss as Boss;
+    teleport(w, 24, 21);
+    run(w, 3, {});
+    expect(boss.state).toBe('fight');
+    run(w, 16, {});
+    expect(boss.phase?.id).toBe('flood1');
+    run(w, 3, {});
+    const lava = w.getEntity('lava_arena') as unknown as { surfaceY: number };
+    expect(lava.surfaceY).toBeLessThan(21 * 32);
+    // Climb to safety and turn both valves.
+    teleport(w, 25, 9);
+    w.getEntity('valve_a')!.interact(w);
+    run(w, 0.2, {});
+    expect(boss.phase?.id).toBe('flood1');
+    w.getEntity('valve_b')!.interact(w);
+    run(w, 0.3, {});
+    expect(boss.phase?.id).toBe('down1');
+    run(w, 3, {}); // lava drains, dragon crashes
+    for (let k = 0; k < 4 && boss.phase?.id === 'down1'; k++) strikeHead(w, boss);
+    expect(boss.phase?.id).toBe('flood2');
+    expect(w.getEntity('valve_a')?.active).toBe(false);
+    teleport(w, 25, 9);
+    run(w, 2, {});
+    w.getEntity('valve_a')!.interact(w);
+    w.getEntity('valve_b')!.interact(w);
+    run(w, 3.5, {});
+    for (let k = 0; k < 4 && boss.phase?.id === 'down2'; k++) strikeHead(w, boss);
+    run(w, 4.5, {});
+    expect(boss.state).toBe('dead');
+    expect(w.getEntity('chest_seal')?.powered).toBe(true);
+  });
+  it('the flooded floor is deadly', () => {
+    const w = levelWorld('4-8');
+    const boss = w.boss as Boss;
+    teleport(w, 24, 21);
+    run(w, 3, {});
+    w.invulnerable = true;
+    run(w, 15.5, {});
+    w.invulnerable = false;
+    expect(boss.phase?.id).toBe('flood1');
+    teleport(w, 45, 21);
+    run(w, 4, {});
+    expect(w.stats.deaths).toBeGreaterThan(0);
+  });
+});

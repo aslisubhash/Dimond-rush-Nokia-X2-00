@@ -66,8 +66,8 @@ export function buildGrid(c: CompiledLevel, defs: EntityDef[], openSecrets: bool
         break;
       }
       case 'lava_body':
-        if (Array.isArray(p['levels']) && e.requires.length) {
-          // Drainable lava (cooling valves): only rows below the lowest surface stay deadly.
+        if (Array.isArray(p['levels'])) {
+          // Lava with discrete levels (valves, boss floods): only rows below the lowest surface stay deadly.
           const low = Math.max(...(p['levels'] as number[]));
           for (let ty = low; ty < e.ty + e.h / TILE; ty++) for (let tx = e.tx; tx < e.tx + e.w / TILE; tx++) set(g.deadly, tx, ty);
         } else if (!p['rising'] && !p['risingOnPower']) cellsOf(e, (x, y) => set(g.deadly, x, y));

@@ -321,7 +321,7 @@ class FireDragonBrain implements BossBrain {
     } else if (pattern === 'grounded' || pattern === 'defeat') {
       P['grounded'] = approach(P['grounded'] ?? 0, 1, dt * 2);
       this.x = approach(this.x, A.x + A.w / 2 + 60, 240 * dt);
-      this.y = approach(this.y, A.y + A.h - 70, 360 * dt);
+      this.y = approach(this.y, A.y + A.h - 46, 360 * dt);
       P['cool'] = approach(P['cool'] ?? 0, 1, dt);
       this.t += dt;
       if (pattern === 'grounded' && every(this.t, dt, 3.5, 1.5)) {
