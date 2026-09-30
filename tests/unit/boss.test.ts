@@ -113,3 +113,73 @@ describe('2-8 Sand King', () => {
     expect(w.getEntity('chest_seal')?.powered).toBe(true);
   });
 });
+
+describe('3-8 Crystal Titan', () => {
+  it('is stunned only by the melody of the current phase and falls after three songs', () => {
+    const w = levelWorld('3-8');
+    w.invulnerable = true;
+    const boss = w.boss as Boss;
+    teleport(w, 62, 19);
+    run(w, 3, {});
+    expect(boss.state).toBe('fight');
+    const strike = (id: string): void => {
+      w.getEntity(id)!.interact(w);
+      run(w, 0.1, {});
+    };
+    // A wrong order does nothing.
+    strike('chime_2');
+    run(w, 2, {});
+    expect(boss.stun).toBe(0);
+    for (let guard = 0; guard < 8 && boss.state === 'fight'; guard++) {
+      const phase = boss.phase!;
+      const order = phase.hint ?? [];
+      run(w, 1.6, {}); // let every chime fade
+      for (const id of order) {
+        // Repeated notes need the crystal to fade first.
+        for (let i = 0; i < 240 && w.getEntity(id)!.active; i++) run(w, 1 / 120, {});
+        strike(id);
+      }
+      run(w, 0.2, {});
+      expect(boss.stun).toBeGreaterThan(0);
+      const wp = boss.brain.weakPoint(boss)!;
+      run(w, 0.6, {});
+      w.player.x = wp.x - w.player.w - 4;
+      w.player.y = 19 * 32 + 32 - w.player.h;
+      w.player.facing = 1;
+      run(w, 0.1, {});
+      run(w, 1 / 120, { attackPressed: true });
+      run(w, 0.5, {});
+      if (boss.state === 'fight' && boss.stun > 0 && boss.phaseHits > 0) {
+        // Needs another hit this phase: wait for the stun to end and play the song again.
+        for (let i = 0; i < 900 && boss.stun > 0; i++) run(w, 1 / 120, {});
+      }
+    }
+    run(w, 4.5, {});
+    expect(boss.state).toBe('dead');
+    expect(w.getEntity('chest_seal')?.powered).toBe(true);
+  });
+
+  it('a failed stun window resets the melody so it can be replayed', () => {
+    const w = levelWorld('3-8');
+    w.invulnerable = true;
+    const boss = w.boss as Boss;
+    teleport(w, 62, 19);
+    run(w, 3, {});
+    for (const id of ['chime_1', 'chime_3', 'chime_2']) {
+      w.getEntity(id)!.interact(w);
+      run(w, 0.1, {});
+    }
+    run(w, 0.2, {});
+    expect(boss.stun).toBeGreaterThan(0);
+    run(w, 7, {});
+    expect(boss.stun).toBe(0);
+    expect(w.getEntity('seq_p1')?.active).toBe(false);
+    run(w, 1.6, {});
+    for (const id of ['chime_1', 'chime_3', 'chime_2']) {
+      w.getEntity(id)!.interact(w);
+      run(w, 0.1, {});
+    }
+    run(w, 0.2, {});
+    expect(boss.stun).toBeGreaterThan(0);
+  });
+});

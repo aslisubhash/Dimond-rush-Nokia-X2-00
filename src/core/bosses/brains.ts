@@ -252,19 +252,20 @@ class TitanBrain implements BossBrain {
     P['facing'] = dir;
     const minX = b.arenaRect.x + 90;
     const maxX = b.arenaRect.x + b.arenaRect.w - 90;
-    const speed = pattern === 'shard_throw' ? 30 : 48;
+    const fury = pattern === 'fury';
+    const speed = pattern === 'shard_throw' || fury ? 30 : 48;
     if (Math.abs(px - this.x) > 110) {
       this.x = clamp(this.x + dir * speed * dt, minX, maxX);
       P['walk'] = (P['walk'] ?? 0) + dt * 3;
     }
     P['x'] = this.x;
-    if (every(this.t, dt, 3.6, 1.5)) {
+    if (every(this.t, dt, fury ? 2.8 : 3.6, 1.5)) {
       P['stomp'] = 1;
       world.emit({ kind: 'shake', intensity: 0.008, duration: 0.3 });
       world.emit({ kind: 'sound', id: 'stomp_heavy' });
       for (const d of [-1, 1]) world.spawnProjectile({ x: this.x + d * 50, y: b.by - 12, vx: d * 230, vy: 0, radius: 12, kind: 'shockwave', life: 3 });
     }
-    if (pattern === 'shard_throw' && every(this.t, dt, 2.2, 0.8)) {
+    if ((pattern === 'shard_throw' || fury) && every(this.t, dt, fury ? 1.9 : 2.2, 0.8)) {
       const sx = this.x;
       const sy = b.by - 130;
       for (const spread of [-80, 0, 80]) {

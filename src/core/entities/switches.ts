@@ -280,7 +280,13 @@ export class EchoStone extends Entity {
  */
 export class SequenceLock extends Entity {
   progress = 0;
+  /** Disabled locks only track their sources (boss phases enable them with START). */
+  enabled = true;
   private prev: boolean[] = [];
+  constructor(def: EntityDef) {
+    super(def);
+    this.enabled = this.bool('enabled', true);
+  }
   get order(): string[] {
     const o = this.props['order'];
     return Array.isArray(o) ? (o as string[]) : [];
@@ -291,24 +297,25 @@ export class SequenceLock extends Entity {
   override update(world: WorldApi): void {
     if (this.active && this.bool('latch', true)) return;
     const order = this.order;
+    // Sources may repeat in the order (melodies): evaluate each distinct source once per step.
     for (let i = 0; i < order.length; i++) {
-      const src = world.getEntity(order[i] ?? '');
-      const now = !!src?.active;
+      const id = order[i] ?? '';
+      if (order.indexOf(id) !== i) continue;
+      const now = !!world.getEntity(id)?.active;
       const was = this.prev[i] ?? false;
       this.prev[i] = now;
-      if (now && !was) {
-        if (i === this.progress) {
-          this.progress++;
-          world.emit({ kind: 'sound', id: `chime_${Math.min(this.progress - 1, 5)}`, volume: 0.7 });
-          if (this.progress >= order.length) {
-            this.active = true;
-            world.fire('SEQUENCE_SOLVED', this.id);
-            world.emit({ kind: 'sound', id: 'puzzle_solved' });
-          }
-        } else {
-          this.fail(world);
-          return;
+      if (!now || was || !this.enabled) continue;
+      if (order[this.progress] === id) {
+        this.progress++;
+        world.emit({ kind: 'sound', id: `chime_${Math.min(this.progress - 1, 5)}`, volume: 0.7 });
+        if (this.progress >= order.length) {
+          this.active = true;
+          world.fire('SEQUENCE_SOLVED', this.id);
+          world.emit({ kind: 'sound', id: 'puzzle_solved' });
         }
+      } else {
+        this.fail(world);
+        return;
       }
     }
   }
@@ -324,7 +331,11 @@ export class SequenceLock extends Entity {
     if (action.type === 'RESET') {
       this.active = false;
       this.fail(world);
-    }
+    } else if (action.type === 'START') {
+      this.enabled = true;
+      this.active = false;
+      this.progress = 0;
+    } else if (action.type === 'STOP') this.enabled = false;
   }
 }
 
